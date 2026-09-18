@@ -189,21 +189,31 @@
       }
     }},
     night: { name: "밤하늘", draw: function (x, rng, W, H) {
-      const g = x.createRadialGradient((W/2), (H*0.95), 20, (W/2), (H/2), (W*0.81));
-      g.addColorStop(0, "#2b1a44"); g.addColorStop(1, "#05060f");
-      x.fillStyle = g; x.fillRect(0, 0, W, H);
-      for (let k = 0; k < 8; k++) {              // nebulae, so no region is empty
-        const cx = rng() * W, cy = rng() * H, r = 60 + rng() * 150;
-        const n = x.createRadialGradient(cx, cy, 0, cx, cy, r);
-        n.addColorStop(0, "hsla(" + ((rng() * 360) | 0) + " 80% 62% / .5)");
-        n.addColorStop(1, "hsla(0 0% 0% / 0)");
-        x.fillStyle = n; x.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+      // Stars alone make a bad jigsaw: most of the picture is black and most
+      // pieces have the same face. The clouds and the moon are what give every
+      // region something of its own.
+      x.fillStyle = "hsl(250 60% 7%)"; x.fillRect(0, 0, W, H);
+      for (let k = 0; k < 90; k++) {
+        const cx = rng() * W, cy = rng() * H, r = (0.10 + rng() * 0.22) * Math.min(W, H);
+        x.globalAlpha = 0.10 + rng() * 0.16;
+        x.fillStyle = "hsl(" + ((rng() * 360) | 0) + " 75% " + (32 + rng() * 34) + "%)";
+        x.beginPath(); x.arc(cx, cy, r, 0, 6.2832); x.closePath(); x.fill();
       }
-      for (let k = 0; k < 900; k++) {
-        const s = rng() * rng() * 3.4;
-        x.fillStyle = "hsla(" + (40 + rng() * (H/2)) + " 40% " + (72 + rng() * 28) + "% / " +
-          (0.4 + rng() * 0.6) + ")";
-        x.beginPath(); x.arc(rng() * W, rng() * H, 0.4 + s, 0, 6.2832); x.fill();
+      x.globalAlpha = 1;
+      const mx = (0.2 + rng() * 0.6) * W, my = (0.15 + rng() * 0.4) * H,
+            mr = 0.075 * Math.min(W, H);
+      x.fillStyle = "hsl(50 30% 92%)";
+      x.beginPath(); x.arc(mx, my, mr, 0, 6.2832); x.closePath(); x.fill();
+      for (let k = 0; k < 26; k++) {          // 큰 별 몇 개
+        x.fillStyle = "hsl(" + (40 + rng() * 200) + " 45% 88%)";
+        const r = 2 + rng() * 4;
+        x.beginPath(); x.arc(rng() * W, rng() * H, r, 0, 6.2832); x.closePath(); x.fill();
+      }
+      for (let k = 0; k < 700; k++) {         // 작은 별
+        x.fillStyle = "hsla(" + (40 + rng() * 200) + " 40% " + (74 + rng() * 26) + "% / " +
+          (0.45 + rng() * 0.55) + ")";
+        x.beginPath(); x.arc(rng() * W, rng() * H, 0.5 + rng() * rng() * 2.6, 0, 6.2832);
+        x.closePath(); x.fill();
       }
     }},
     glass: { name: "스테인드글라스", draw: function (x, rng, W, H) {
@@ -242,11 +252,12 @@
     return [Math.round(255 * (r + m)), Math.round(255 * (g + m)), Math.round(255 * (b + m))];
   }
 
-  function picture(which, seed) {
+  function picture(which, seed, frame) {
+    const F = frame || LAND;
     const cv = document.createElement("canvas");
-    cv.width = 640; cv.height = 400;
+    cv.width = F.pw; cv.height = F.ph;
     const x = cv.getContext("2d");
-    (PICTURES[which] || PICTURES.shapes).draw(x, mulberry(seed));
+    (PICTURES[which] || PICTURES.shapes).draw(x, mulberry(seed), F.pw, F.ph);
     return cv;
   }
 
