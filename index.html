@@ -147,6 +147,12 @@
                   border-radius:12px;padding:10px}
   #over .rows .k{color:var(--faint);font-size:10px}
   #over .rows .v{font-size:20px;font-weight:800;margin-top:2px}
+  #over .spec{color:var(--faint);font-size:11px;line-height:1.6;margin-bottom:8px}
+  #over .rank{color:var(--dim);font-size:12.5px;line-height:1.6;margin-bottom:16px;
+              background:#0d121b;border:1px solid var(--line);border-radius:12px;
+              padding:9px 11px}
+  #over .rank b{color:var(--ok);font-weight:800}
+  #over .rank .ord{color:var(--gold,#fbbf24);font-weight:800}
 
   #confetti{position:fixed;inset:0;z-index:55;pointer-events:none;display:none;
             width:100%;height:100%;background:none}
@@ -341,6 +347,8 @@
     <div><div class="k">사람</div><div class="v mono" id="overYou">–</div></div>
     <div><div class="k">초파리</div><div class="v mono" id="overFly">–</div></div>
   </div>
+  <div class="spec mono" id="overSpec"></div>
+  <div class="rank" id="overRank"></div>
   <button id="again">다시 한 판</button>
 </div></div>
 
@@ -527,18 +535,29 @@ function animateSwap(id, before, after, i, j, colour, done, keepMark){
   const tw=cv.width/P.cols, th=cv.height/P.rows;
   const [xi,yi]=slotXY(i,tw,th,P.cols), [xj,yj]=slotXY(j,tw,th,P.cols);
   const t0=performance.now();
+  let over=false;
+  function land(){
+    if(over) return;
+    over=true; clearTimeout(guard);
+    const landed=[i,j].filter(s=>after[s]===s);
+    const mark = keepMark ? [i,j] : null;
+    paint(id, after, {mark, colour, pop:landed});
+    if(landed.length) setTimeout(()=>paint(id, after, {mark, colour}), 260);
+    done&&done();
+  }
+  // requestAnimationFrame 은 탭이 안 보이면 멈춘다. 그때 애니메이션이 끝나지
+  // 않으면 이 콜백을 기다리던 초파리도 영영 다음 수를 못 둔다. 그림은 못 보여도
+  // 판은 계속 가야 하므로 타이머로 한 번 더 막는다.
+  const guard = setTimeout(land, SWAP_MS + 260);
   (function step(now){
+    if(over) return;
     const u=Math.min(1,(now-t0)/SWAP_MS);
     const e=u<.5 ? 4*u*u*u : 1-Math.pow(-2*u+2,3)/2;   // ease in-out
     paint(id, before, {hide:[i,j], colour, moving:[
       {piece:before[i], x:xi+(xj-xi)*e, y:yi+(yj-yi)*e},
       {piece:before[j], x:xj+(xi-xj)*e, y:yj+(yi-yj)*e}]});
     if(u<1) return requestAnimationFrame(step);
-    const landed=[i,j].filter(s=>after[s]===s);
-    const mark = keepMark ? [i,j] : null;
-    paint(id, after, {mark, colour, pop:landed});
-    if(landed.length) setTimeout(()=>paint(id, after, {mark, colour}), 260);
-    done&&done();
+    land();
   })(t0);
 }
 
@@ -631,6 +650,22 @@ function relayout(){
   repaint();
 }
 
+/**
+ * Your own times, per difficulty and fly speed, in this browser only.
+ *
+ * There is no server here, so there is no board to climb -- only your own runs.
+ * localStorage can be empty or throw outright in a private window, so every
+ * read and write is wrapped and the game does not care if it comes back with
+ * nothing.
+ */
+function recKey(){ return "btf:v1:" + S.n + ":x" + S.speed; }
+function recLoad(){
+  try{ return JSON.parse(localStorage.getItem(recKey()) || "[]"); }catch(e){ return []; }
+}
+function recSave(list){
+  try{ localStorage.setItem(recKey(), JSON.stringify(list.slice(0, 60))); }catch(e){}
+}
+
 const home = b => b.reduce((n,p,s)=>n+(p===s?1:0),0);
 function hud(){
   const h=home(S.human), f=home(S.fly);
@@ -671,7 +706,9 @@ function start(){
   const board=Puzzle.shuffled(P.n,Puzzle.mulberry((Math.random()*1e9)|0));
   const solved=Array.from({length:P.n},(_,i)=>i);
 
-  S={ pieces:P, lookMs, human:board.slice(), fly:board.slice(), n:P.n,
+  S={ pieces:P, lookMs, speed:SPEEDS[+$("speed").value],
+      neurons:S.neurons, edges:S.edges,
+      human:board.slice(), fly:board.slice(), n:P.n,
       moves:{human:0,fly:0}, pick:-1, winner:null, lastHome:home(board), said:0,
       target: Float64Array.from(fly.look(P.render(solved))) };
 
@@ -768,6 +805,33 @@ function finish(who){
   $("overTime").textContent=secs+"초";
   $("overYou").textContent=S.moves.human+"수";
   $("overFly").textContent=S.moves.fly+"수";
+
+  const cands = S.n*(S.n-1)/2;
+  $("overSpec").innerHTML =
+    "초파리 뉴런 " + (S.neurons||7858).toLocaleString() + "개 · 간선 " +
+    (S.edges||7107).toLocaleString() + " · 학습되는 값 0개<br>" +
+    "×" + S.speed + " 속도 — 한 수에 " + cands + "장을 " +
+    S.lookMs.toFixed(S.lookMs<10?1:0) + "ms 씩, " +
+    (cands*S.lookMs/1000).toFixed(1) + "초";
+
+  // 이긴 판만 기록에 남긴다. 진 판의 시간은 초파리가 언제 끝냈느냐라서
+  // 내 실력의 기록이 아니다.
+  const list = recLoad();
+  if(won) list.push(+secs);
+  list.sort((a,b)=>a-b);
+  if(won) recSave(list);
+  const label = S.n + "조각 · ×" + S.speed;
+  if(!list.length){
+    $("overRank").innerHTML = label + " — 아직 이긴 기록이 없다";
+  } else if(won){
+    const rank = list.indexOf(+secs) + 1;
+    $("overRank").innerHTML = label + " — 내 기록 " + list.length + "판 중 " +
+      '<span class="ord">' + rank + "위</span>" +
+      (rank === 1 ? " <b>새 최고 기록</b>" : "  ·  최고 " + list[0].toFixed(1) + "초");
+  } else {
+    $("overRank").innerHTML = label + " — 내 최고 " +
+      "<b>" + list[0].toFixed(1) + "초</b> (" + list.length + "판 이김)";
+  }
   setTimeout(()=>$("over").classList.add("on"),420);
 }
 
@@ -881,6 +945,7 @@ fetch("brain.bin").then(r=>r.arrayBuffer()).then(buf=>{
   fly=new FlyBrain.Fly(g);
   $("brain").textContent="뉴런 "+g.N.toLocaleString()+" · 간선 "+g.E.toLocaleString()+
     " · 학습되는 값 0개 · 브라우저에서 그대로 돈다 ("+Math.round(buf.byteLength/1024)+" KB)";
+  S.neurons=g.N; S.edges=g.E;
   $("go").disabled=false;
   observe("you", ".a-you .wrap");
   observe("fly", ".a-fly .wrap");
