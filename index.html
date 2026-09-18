@@ -142,17 +142,8 @@
              border:1px solid var(--line);animation:cIn2 .3s ease-out}
   @keyframes cIn2{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
   #over .big{font-family:"Jua",sans-serif;font-size:50px;letter-spacing:0;margin-bottom:4px}
-  #over .why{color:var(--dim);font-size:13px;margin-bottom:16px}
-  #over .rows{display:flex;gap:10px;margin-bottom:18px}
-  #over .rows div{flex:1;background:#0d121b;border:1px solid var(--line);
-                  border-radius:12px;padding:10px}
-  #over .rows .k{color:var(--faint);font-size:10px}
-  #over .rows .v{font-size:20px;font-weight:800;margin-top:2px}
-  #over .spec{color:var(--faint);font-size:11px;line-height:1.6;margin-bottom:8px}
-  #over .rank{color:var(--dim);font-size:12.5px;line-height:1.6;margin-bottom:16px;
-              background:#0d121b;border:1px solid var(--line);border-radius:12px;
-              padding:9px 11px}
-  #over .rank b{color:var(--ok);font-weight:800}
+  #over .why{color:#ffd9ec;font-size:15px;line-height:1.55;margin:4px 0 18px;
+             font-weight:700}
   /* 줄다리기: 한 줄 위에서 양쪽이 서로 밀고 당긴다. 가운데 눈금이 반반 자리다. */
   #over .tallyhead{color:var(--faint);font-size:10.5px;letter-spacing:.4px;margin-bottom:6px}
   #over .tug{margin-bottom:6px}
@@ -167,8 +158,8 @@
                  text-shadow:0 1px 2px #0009;pointer-events:none}
   #over .rope .pMe{left:8px}
   #over .rope .pBug{right:8px}
-  #over .tugsay{text-align:center;font-size:12.5px;margin-top:7px;
-                color:var(--dim);line-height:1.5;min-height:19px}
+  #over .tugsay{text-align:center;font-size:13.5px;margin:10px 0 16px;
+                color:var(--ink);line-height:1.5;min-height:20px;font-weight:700}
   #over .rope{position:relative;height:22px;border-radius:9px;overflow:hidden;
               background:linear-gradient(90deg,#6b2a4d,var(--fly));
               box-shadow:inset 0 1px 3px #0008}
@@ -178,8 +169,6 @@
                 transition:width .7s cubic-bezier(.3,1.2,.4,1)}
   #over .rope u{position:absolute;left:50%;top:0;bottom:0;width:0;
                 border-left:1px dashed rgba(255,255,255,.35)}
-  #over .tallynote{color:#49505f;font-size:10px;margin-bottom:12px}
-  #over .rank .ord{color:var(--gold,#fbbf24);font-weight:800}
 
   #confetti{position:fixed;inset:0;z-index:55;pointer-events:none;display:none;
             width:100%;height:100%;background:none}
@@ -455,11 +444,6 @@
 <div id="over"><div class="box">
   <div class="big" id="overBig">승</div>
   <div class="why" id="overWhy"></div>
-  <div class="rows">
-    <div><div class="k">걸린 시간</div><div class="v mono" id="overTime">–</div></div>
-    <div><div class="k">사람</div><div class="v mono" id="overYou">–</div></div>
-    <div><div class="k">초파리</div><div class="v mono" id="overFly">–</div></div>
-  </div>
   <div class="tallyhead">모든 플레이어 합계</div>
   <div class="tug">
     <div class="ends">
@@ -471,9 +455,6 @@
       <span class="p pBug mono" id="tugPctFly"></span></div>
     <div class="tugsay" id="tugSay"></div>
   </div>
-  <div class="tallynote" id="overTallyNote">누구나 올릴 수 있는 공개 카운터다</div>
-  <div class="spec mono" id="overSpec"></div>
-  <div class="rank" id="overRank"></div>
   <button id="again">다시 한 판</button>
 </div></div>
 
@@ -500,32 +481,65 @@ const portrait = () => window.matchMedia("(orientation:portrait),(max-width:840p
 const frame = () => portrait() ? Puzzle.PORT : Puzzle.LAND;
 
 // ------------------------------------------------------------------ 대사
+/**
+ * The fly, in character.
+ *
+ * It has 7,858 neurons and can only report how close two pictures look, and it
+ * talks like something that means to rule the earth. The gap is the joke, so the
+ * lines never explain themselves -- no neuron counts, no milliseconds. Those are
+ * on the second page of the how-to for anyone who wants them.
+ *
+ * When it wins it names one number, and it is not the clock: how many pieces you
+ * had right when it finished. "열두 조각 중 세 개" lands harder than any time.
+ */
+const pick = a => a[(Math.random() * a.length) | 0];
+
+const LORD_WIN = [
+  "인간이여. 너는 {t}조각 중 {n}개를 맞췄다.",
+  "{n} / {t}. 이것이 너의 한계다.",
+  "{t}개 중 {n}개. 기록해 두마.",
+  "저항은 기록되었다. {t}조각 중 {n}개였다.",
+  "손가락이 열 개인데 {n}개인가.",
+  "이 별의 주인이 바뀌는 날이다. 너는 {n}개를 맞췄다.",
+  "너희의 문명은 {t}분의 {n}에서 멈췄다.",
+];
+const LORD_LOSE = [
+  "오늘은... 물러나겠다. 오늘은.",
+  "방심했다. 단지 그뿐이다.",
+  "이것으로 끝이라 생각하지 마라.",
+  "인간 하나를 이기지 못했다고 세계가 바뀌지는 않는다.",
+  "기억해 두마. 네 손가락 열 개를.",
+  "재대결을 요구한다. 지금 당장.",
+];
+
 const LINES = {
-  look:["{seen}장째… 눈이 하나뿐이라 한 장씩밖에 못 본다",
-        "{of}장을 다 봐야 한다고? 나 뉴런 7,858개밖에 없는데",
-        "이게 더 닮았나… 아니 저게 더 닮았나…",
-        "솔직히 말하면 나는 '닮은 정도'만 잰다. 푸는 건 딴 놈이 한다",
-        "한 장에 {ms}밀리초. 18이 내 정직한 속도인데",
-        "속도 올린다고 내가 더 똑똑해지진 않는다",
-        "인간은 눈이 두 개면서 왜 한 번에 하나만 보냐",
-        "간선이 7,107개인데 전부 억제성이다. 나 좀 우울해",
-        "배선을 섞어도 내가 똑같이 푼다던데… 그 말은 안 했으면 좋겠다"],
-  good:["오 이거다","좋아 좋아","가까워졌다","봤지? 이게 초파리다",
-        "닮음 수치가 내려갔다. 내려가는 게 좋은 거 맞지?"],
-  bad :["어… 아닌가","이럴 리가 없는데","잠깐만 다시 볼게",
-        "내 탓 아니다. 제일 닮은 걸 골랐을 뿐이다"],
-  ahead:["인간 느리네","손가락이 있는데도 그것밖에 못 하나","나 지금 이기고 있는 거 맞지?"],
-  behind:["쟤 왜 저렇게 빨라","손가락 쓰는 건 반칙 아닌가",
-          "인간은 한 번에 다 보잖아. 나는 한 장씩인데"],
-  close:["거의 다 왔다","한 수만 더","이거 내가 이긴다"],
-  win :["초파리 승. 다음에 또 오세요 🪰","설마 했지? 그 설마다","뉴런 7,858개로 이겼다"],
-  lose:["졌다. 억제성 간선 탓이다","인간 손 빠르네…","다시 한 판. 이번엔 쉬운 걸로"],
+  look:["{seen}장째… 나는 서두르지 않는다.",
+        "{of}장. 전부 본 뒤에 결정하겠다.",
+        "이것인가… 아니면 저것인가…",
+        "시간은 나의 편이다. 나는 지치지 않는다.",
+        "한 장씩. 언제나 한 장씩.",
+        "너희가 눈을 깜빡이는 사이에도 나는 보고 있다.",
+        "인간은 서두르다 실수한다.",
+        "이 판의 끝은 이미 정해져 있다."],
+  good:["보아라.","이것이 순리다.","계획대로다.","한 걸음 가까워졌다.",
+        "너의 패배가 한 칸 다가왔다."],
+  bad :["…실수마저 계산에 넣었다.","잠깐. 다시 보겠다.",
+        "이것은 후퇴가 아니라 우회다.","누구에게도 말하지 마라."],
+  ahead:["느리구나, 인간.","그 속도로 나를 막을 셈인가.",
+         "이미 늦었다.","손가락이 열 개인데 그것뿐인가."],
+  behind:["잠깐. 이건 예정에 없다.","제법이군. 인간치고는.",
+          "아직 끝나지 않았다.","운이 좋았을 뿐이다."],
+  close:["끝이 보인다.","한 수만 더.","이 판은 나의 것이다."],
+  win :["끝났다. 인간은 나의 것이다.","설마 했지? 그 설마다.",
+        "이 별의 주인이 바뀌었다."],
+  lose:["오늘은 물러난다. 다음은 없다.","방심했을 뿐이다.",
+        "재대결을 요구한다."],
 };
 let lastLine = "";
 function says(kind, vars){
   const pool = LINES[kind] || LINES.look;
-  let s = pool[(Math.random()*pool.length)|0];
-  for(let i=0;i<4 && s===lastLine;i++) s = pool[(Math.random()*pool.length)|0];
+  let s = pick(pool);
+  for(let i=0;i<4 && s===lastLine;i++) s = pick(pool);
   lastLine = s;
   for(const k in (vars||{})) s = s.split("{"+k+"}").join(vars[k]);
   $("says").textContent = s;
@@ -777,21 +791,6 @@ function relayout(){
   repaint();
 }
 
-/**
- * Your own times, per difficulty and fly speed, in this browser only.
- *
- * There is no server here, so there is no board to climb -- only your own runs.
- * localStorage can be empty or throw outright in a private window, so every
- * read and write is wrapped and the game does not care if it comes back with
- * nothing.
- */
-function recKey(){ return "btf:v1:" + S.n + ":x" + S.speed; }
-function recLoad(){
-  try{ return JSON.parse(localStorage.getItem(recKey()) || "[]"); }catch(e){ return []; }
-}
-function recSave(list){
-  try{ localStorage.setItem(recKey(), JSON.stringify(list.slice(0, 60))); }catch(e){}
-}
 
 /**
  * Everybody's games, added up, on a free public counter.
@@ -828,9 +827,6 @@ function tallyShow(h, f){
   $("tugPctMe").textContent  = (known && T) ? me + "%" : "";
   $("tugPctFly").textContent = (known && T) ? bug + "%" : "";
   $("tugSay").innerHTML = (known && T) ? tugSay(me) : "";
-  $("overTallyNote").textContent = known
-    ? "누구나 올릴 수 있는 공개 카운터다"
-    : "합계를 불러오지 못했다";
 }
 
 /** A line for wherever the rope has ended up. */
@@ -842,48 +838,24 @@ function tallyShow(h, f){
  * only ever reports how close two pictures look.
  */
 const TUG_SAYS = [
-  [75, ["초파리는 아직 눈이 하나뿐이다.",
-        "인류가 이기고 있다. 뉴런 860억 대 <b>7,858</b>이니 이겨야 정상이긴 하다.",
-        "손가락 다섯 개의 승리.",
-        "초파리가 한 장 볼 동안 인간은 판 전체를 본다. 그 차이다.",
-        "이쯤이면 초파리 가속을 올려줄 때가 됐다.",
-        "압승. 자랑하기엔 상대가 좀 작다."]],
-  [62, ["인간이 앞선다. 손가락은 괜히 달린 게 아니다.",
-        "아직은 인간의 시대다.",
-        "초파리가 한 장씩 보는 사이에 인간은 이미 집어 옮긴다.",
-        "뇌 무게로는 이겨야 한다. 실제로 이기고 있다.",
-        "우세. 다만 상대는 18밀리초에 한 장씩만 본다."]],
-  [55, ["인간이 조금 앞선다.",
-        "간신히 앞선다. 상대는 뉴런 7,858개다.",
-        "우위가 얇다. 가속을 한 칸 올리면 뒤집힌다.",
-        "이기고는 있는데 마음이 편하지는 않다.",
-        "근소한 우세. 자축은 이르다."]],
-  [46, ["팽팽하다. 뉴런 <b>7,858개</b>와 호각이다.",
-        "반반. 이게 더 무서운 결과다.",
-        "줄이 안 움직인다. 인류와 초파리가 같은 힘으로 당기는 중.",
-        "동률. 상대 간선은 7,107개고 그마저 전부 억제성이다.",
-        "무승부 언저리. 어느 쪽도 자랑할 게 없다."]],
-  [38, ["밀리고 있다.",
-        "조금씩 끌려간다.",
-        "초파리가 앞서기 시작했다. 아직 만회할 수 있다.",
-        "열세. 난도를 낮추는 것도 방법이다.",
-        "줄이 저쪽으로 넘어갔다."]],
-  [25, ["인간은 초파리에게 패배하고 마는 건가...",
-        "뉴런 7,858개한테 밀리는 중입니다, 여러분.",
-        "이건 좀 심각하다.",
-        "상대는 겹눈에 뇌가 좁쌀만 하다. 그런데 이기고 있다.",
-        "인류의 체면이 걸린 국면.",
-        "초파리가 줄을 끌고 간다. 말릴 사람?"]],
-  [0,  ["뉴런 7,858개 앞에 인류가 무너지는 중.",
-        "완패. 상대 간선은 7,107개, 전부 억제성이다.",
-        "초파리 압승. 이 줄은 이미 저쪽 땅에 가 있다.",
-        "누가 좀 이겨주세요.",
-        "인류 대표가 필요합니다.",
-        "이쯤 되면 초파리 가속을 ×0.1로 내려도 할 말이 없다."]],
+  [75, ["인류가 버티고 있다.", "대왕이 쫓겨나는 중.", "아직은 인간의 별이다.",
+        "초파리, 본진까지 밀렸다.", "이 정도면 놀아준 것이다."]],
+  [62, ["인간이 앞선다.", "전선은 아직 인간 쪽이다.", "밀어붙이는 중.",
+        "대왕의 계획에 차질이 생겼다."]],
+  [55, ["간신히 앞선다.", "한 발만 물러서면 뒤집힌다.",
+        "이기고는 있는데 마음이 편하지 않다.", "아슬아슬하다."]],
+  [46, ["팽팽하다.", "줄이 움직이지 않는다.", "반반. 이게 더 무섭다.",
+        "인류와 초파리가 같은 힘으로 당기는 중."]],
+  [38, ["밀리고 있다.", "줄이 저쪽으로 넘어갔다.", "전선이 무너지는 중.",
+        "위태롭다."]],
+  [25, ["인간은 초파리에게 패배하고 마는 건가...", "체면이 걸렸다.",
+        "누가 좀 막아봐라.", "대왕이 줄을 끌고 간다."]],
+  [0,  ["인류가 무너지는 중.", "초파리의 시대가 왔다.", "누가 좀 이겨주세요.",
+        "인류 대표 구함.", "이 별의 주인이 바뀌었다."]],
 ];
 function tugSay(me){
   for(const band of TUG_SAYS)
-    if(me >= band[0]) return band[1][(Math.random() * band[1].length) | 0];
+    if(me >= band[0]) return pick(band[1]);
   return "";
 }
 
@@ -1019,45 +991,16 @@ function finish(who){
   says(won?"lose":"win");
   if(won){ SFX.win(); confetti(["#4ade80","#5aa2ff","#fbbf24","#ffffff","#c9a6ff"]); }
   else SFX.lose();
-  $("overBig").textContent=won?"이겼다":"졌다";
-  $("overBig").style.color=won?"var(--ok)":"var(--fly)";
-  $("overWhy").textContent=won
-    ? "초파리 뉴런 7,858개를 손으로 이겼다."
-    : "초파리가 먼저 맞췄다. 한 수에 "+(S.n*(S.n-1)/2)+"장씩 봤다.";
-  $("overTime").textContent=secs+"초";
-  $("overYou").textContent=S.moves.human+"수";
-  $("overFly").textContent=S.moves.fly+"수";
+  $("overBig").textContent = won ? "이겼다" : "졌다";
+  $("overBig").style.color = won ? "var(--ok)" : "var(--fly)";
+  $("overWhy").textContent = "\u201C" + pick(won ? LORD_LOSE : LORD_WIN)
+    .split("{n}").join(home(S.human)).split("{t}").join(S.n) + "\u201D";
 
   tallyShow(null, null);
   Promise.all([tallyHit(won ? "human" : "fly"), tallyRead(won ? "fly" : "human")])
     .then(([mine, other]) => tallyShow(won ? mine : other, won ? other : mine));
 
-  const cands = S.n*(S.n-1)/2;
-  $("overSpec").innerHTML =
-    "초파리 뉴런 " + (S.neurons||7858).toLocaleString() + "개 · 간선 " +
-    (S.edges||7107).toLocaleString() + " · 학습되는 값 0개<br>" +
-    "×" + S.speed + " 속도 — 한 수에 " + cands + "장을 " +
-    S.lookMs.toFixed(S.lookMs<10?1:0) + "ms 씩, " +
-    (cands*S.lookMs/1000).toFixed(1) + "초";
 
-  // 이긴 판만 기록에 남긴다. 진 판의 시간은 초파리가 언제 끝냈느냐라서
-  // 내 실력의 기록이 아니다.
-  const list = recLoad();
-  if(won) list.push(+secs);
-  list.sort((a,b)=>a-b);
-  if(won) recSave(list);
-  const label = S.n + "조각 · ×" + S.speed;
-  if(!list.length){
-    $("overRank").innerHTML = label + " — 아직 이긴 기록이 없다";
-  } else if(won){
-    const rank = list.indexOf(+secs) + 1;
-    $("overRank").innerHTML = label + " — 내 기록 " + list.length + "판 중 " +
-      '<span class="ord">' + rank + "위</span>" +
-      (rank === 1 ? " <b>새 최고 기록</b>" : "  ·  최고 " + list[0].toFixed(1) + "초");
-  } else {
-    $("overRank").innerHTML = label + " — 내 최고 " +
-      "<b>" + list[0].toFixed(1) + "초</b> (" + list.length + "판 이김)";
-  }
   setTimeout(()=>$("over").classList.add("on"),420);
 }
 
