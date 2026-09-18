@@ -92,7 +92,8 @@
   .wrap canvas,.tgtwrap canvas{max-width:100%;max-height:100%}
   canvas{display:block;width:100%;max-width:100%;height:auto;background:#05070b;
          image-rendering:pixelated}
-  #you{cursor:pointer}
+  #you{cursor:grab;touch-action:none}
+  #you.dragging{cursor:grabbing}
   .a-you .wrap{box-shadow:0 0 0 1px #24384f,0 14px 40px -24px var(--you)}
   .a-fly .wrap{box-shadow:0 0 0 1px #4a2238,0 14px 40px -24px var(--fly)}
 
@@ -328,10 +329,10 @@
   </div></div>
 
   <div class="a-you"><div class="card you">
-    <h2><span style="color:var(--you)">사람</span> <small>조각 두 개를 눌러 바꾼다</small></h2>
+    <h2><span style="color:var(--you)">사람</span> <small>끌어다 놓거나, 두 개를 눌러 바꾼다</small></h2>
     <div class="wrap"><canvas id="you" width="480" height="300"></canvas>
       <div class="veil" id="youVeil"></div></div>
-    <div class="stat" id="youTip">두 조각을 눌러 자리를 맞바꾼다</div>
+    <div class="stat" id="youTip">조각을 끌어다 놓으면 자리가 바뀐다</div>
   </div></div>
 </div>
 
@@ -836,23 +837,34 @@ function finish(who){
 }
 
 // ------------------------------------------------------------------ 입력
-function tap(e){
-  if(S.winner||S.locked||S.busy||!S.pieces) return;
+/** Which slot a pointer is over, or -1. */
+function slotAt(e){
   const cv=$("you"), r=cv.getBoundingClientRect(), P=S.pieces;
-  const pt=e.changedTouches?e.changedTouches[0]:e;
-  const c=((pt.clientX-r.left)/(r.width/P.cols))|0, w=((pt.clientY-r.top)/(r.height/P.rows))|0;
-  const slot=w*P.cols+c;
-  if(slot<0||slot>=S.n||c<0||c>=P.cols) return;
-  if(S.pick<0){ S.pick=slot; SFX.pick();
-    paint("you",S.human,{mark:[slot],colour:"#5aa2ff"}); return; }
-  if(S.pick===slot){                                   // 같은 조각을 다시 -> 취소
-    S.pick=-1; SFX.drop(); paint("you",S.human); return; }
-  const a=S.pick; S.pick=-1;
+  if(!P) return -1;
+  const pt = e.changedTouches ? e.changedTouches[0] : e;
+  const c = ((pt.clientX-r.left)/(r.width/P.cols))|0;
+  const w = ((pt.clientY-r.top)/(r.height/P.rows))|0;
+  if(c<0||c>=P.cols||w<0||w>=P.rows) return -1;
+  const slot = w*P.cols+c;
+  return (slot>=0 && slot<S.n) ? slot : -1;
+}
+
+/** Pointer position in the canvas's own pixels, which is what paint() draws in. */
+function canvasXY(e){
+  const cv=$("you"), r=cv.getBoundingClientRect();
+  const pt = e.changedTouches ? e.changedTouches[0] : e;
+  return [(pt.clientX-r.left) * cv.width / r.width,
+          (pt.clientY-r.top) * cv.height / r.height];
+}
+
+/** The one place a human move happens, whether it came from a tap or a drag. */
+function doSwap(a, b){
+  if(a===b || a<0 || b<0) return;
   const before=S.human.slice();
-  [S.human[a],S.human[slot]]=[S.human[slot],S.human[a]];
+  [S.human[a],S.human[b]]=[S.human[b],S.human[a]];
   S.moves.human++; S.busy=true; SFX.swap();
-  const gained = [a,slot].filter(x=>S.human[x]===x).length;
-  animateSwap("you", before, S.human.slice(), a, slot, "#5aa2ff", ()=>{
+  const gained = [a,b].filter(x=>S.human[x]===x).length;
+  animateSwap("you", before, S.human.slice(), a, b, "#5aa2ff", ()=>{
     S.busy=false; hud();
     if(gained) SFX.land();
     const h=home(S.human);
@@ -860,20 +872,89 @@ function tap(e){
     if(h===S.n) finish("human");
   });
 }
-// 터치 기기에서 touchend 와 click 이 둘 다 오면 한 번의 탭이 두 번 처리되어
-// 고르자마자 취소돼 버린다. pointerup 은 마우스든 손가락이든 한 번만 온다.
-if(window.PointerEvent){
-  $("you").addEventListener("pointerup", tap);
-} else {
-  let touched = 0;
-  $("you").addEventListener("touchend", e=>{
-    touched = Date.now(); e.preventDefault(); tap(e);
-  }, {passive:false});
-  $("you").addEventListener("click", e=>{
-    if(Date.now() - touched < 600) return;            // 방금 손가락으로 처리했다
-    tap(e);
-  });
+
+function tap(e){
+  if(S.winner||S.locked||S.busy||!S.pieces) return;
+  const slot=slotAt(e);
+  if(slot<0) return;
+  if(S.pick<0){ S.pick=slot; SFX.pick();
+    paint("you",S.human,{mark:[slot],colour:"#5aa2ff"}); return; }
+  if(S.pick===slot){                                   // 같은 조각을 다시 -> 취소
+    S.pick=-1; SFX.drop(); paint("you",S.human); return; }
+  const a=S.pick; S.pick=-1;
+  doSwap(a, slot);
 }
+
+/**
+ * Drag to move, on a mouse or a finger alike.
+ *
+ * Pointer events cover both, so there is one path rather than a mouse one and a
+ * touch one that disagree. A press that barely moves is still a tap, so the
+ * two-tap way keeps working for anyone who prefers it; past a few pixels the
+ * piece lifts and follows, and dropping it on another slot swaps them.
+ */
+(function(){
+  const cv = $("you");
+  let drag = null;
+  const THRESHOLD = 7;                                  // 탭과 끌기를 가르는 거리
+
+  function show(e){
+    const P=S.pieces; if(!P||!drag) return;
+    const [px,py] = canvasXY(e);
+    const tw = cv.width/P.cols, th = cv.height/P.rows;
+    const over = slotAt(e);
+    paint("you", S.human, {
+      hide:[drag.slot],
+      mark: (over>=0 && over!==drag.slot) ? [over] : null,
+      colour:"#5aa2ff",
+      moving:[{piece:S.human[drag.slot], x:px-tw/2, y:py-th/2}],
+    });
+  }
+
+  cv.addEventListener("pointerdown", e=>{
+    if(S.winner||S.locked||S.busy||!S.pieces) return;
+    const slot = slotAt(e); if(slot<0) return;
+    drag = {slot, x:e.clientX, y:e.clientY, moved:false, id:e.pointerId};
+    try{ cv.setPointerCapture(e.pointerId); }catch(err){}
+  });
+
+  cv.addEventListener("pointermove", e=>{
+    if(!drag || e.pointerId!==drag.id) return;
+    if(!drag.moved){
+      if(Math.hypot(e.clientX-drag.x, e.clientY-drag.y) < THRESHOLD) return;
+      drag.moved = true;
+      cv.classList.add("dragging");
+      if(S.pick !== drag.slot) SFX.pick();
+      S.pick = -1;
+    }
+    e.preventDefault();
+    show(e);
+  });
+
+  function end(e){
+    if(!drag || e.pointerId!==drag.id) return;
+    const from = drag.slot, moved = drag.moved, over = slotAt(e);
+    drag = null;
+    cv.classList.remove("dragging");
+    try{ cv.releasePointerCapture(e.pointerId); }catch(err){}
+    if(!moved) return tap(e);                           // 안 움직였으면 탭이다
+    if(over>=0 && over!==from) doSwap(from, over);
+    else { SFX.drop(); paint("you", S.human); }         // 제자리에 놓았다
+  }
+  cv.addEventListener("pointerup", end);
+  cv.addEventListener("pointercancel", e=>{
+    if(!drag || e.pointerId!==drag.id) return;
+    drag = null; cv.classList.remove("dragging"); paint("you", S.human);
+  });
+
+  // PointerEvent 가 없는 구형 브라우저는 예전 방식 그대로 탭만 쓴다
+  if(!window.PointerEvent){
+    let touched = 0;
+    cv.addEventListener("touchend", e=>{ touched=Date.now(); e.preventDefault(); tap(e); },
+                        {passive:false});
+    cv.addEventListener("click", e=>{ if(Date.now()-touched < 600) return; tap(e); });
+  }
+})();
 
 // 원본 확대. 시계는 계속 간다 -- 들여다보는 데 시간이 드는 것도 게임이다.
 $("target").addEventListener("click", ()=>{
