@@ -541,17 +541,19 @@ function paint(id, board, opt){
       ctx.strokeStyle="#4ade80"; ctx.lineWidth=3;
       ctx.strokeRect(x+2,y+2,tw-4,th-4);
       if(o.pop && o.pop.indexOf(slot)>=0){            // 방금 제자리에 들어왔다
-        ctx.save(); ctx.globalAlpha=.35; ctx.fillStyle="#4ade80";
-        ctx.fillRect(x,y,tw,th); ctx.restore();
+        ctx.strokeStyle="#4ade80"; ctx.lineWidth=7;
+        ctx.strokeRect(x+4,y+4,tw-8,th-8);
       }
     }
   });
   for(const slot of (o.mark||[])){
     if(slot<0) continue;
     const [x,y]=slotXY(slot,tw,th,P.cols);
-    ctx.fillStyle=(o.colour||"#fff")+"30"; ctx.fillRect(x,y,tw,th);
+    // 테두리만. 반투명하게 덮으면 조각 색이 물들어 무슨 그림인지 안 보인다.
+    ctx.strokeStyle="rgba(0,0,0,.65)"; ctx.lineWidth=6;
+    ctx.strokeRect(x+3,y+3,tw-6,th-6);
     ctx.strokeStyle=o.colour||"#fff"; ctx.lineWidth=4;
-    ctx.strokeRect(x+2,y+2,tw-4,th-4);
+    ctx.strokeRect(x+3,y+3,tw-6,th-6);
   }
   for(const m of (o.moving||[])){                     // 미끄러지는 조각
     ctx.save(); ctx.shadowColor="#000a"; ctx.shadowBlur=14;
