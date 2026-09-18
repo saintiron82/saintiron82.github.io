@@ -1248,7 +1248,9 @@ $("howMore").onclick   = ()=>howPage(2);
 $("howBack").onclick   = ()=>howPage(1);
 $("go").onclick=howto;
 $("introStart").onclick = ()=>{ $("intro").classList.remove("on"); howto(); };
-$("again").onclick=idle;
+// 다시 한 판은 시작을 누른 자리로 보낸다. 판을 물린 뒤 곧바로 설명이 뜨므로
+// 난도와 속도를 고칠 기회는 그대로 있고, 버튼을 한 번 더 누를 일은 없다.
+$("again").onclick = ()=>{ idle(); howto(); };
 $("pickImg").onclick=()=>$("file").click();
 $("file").onchange=e=>{
   const f=e.target.files[0]; if(!f) return;
