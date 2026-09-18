@@ -185,12 +185,10 @@
     /* 세로 그림을 가로로 넓은 칸에 넣으면 양옆이 빈다. 위 띠는 그림을 왼쪽에
        세우고 남는 폭을 글이 쓰게 가른다. 폭을 %로 고정해야 fit() 이 잴 수 있다 --
        auto 로 두면 칸 폭이 캔버스에, 캔버스가 다시 칸 폭에 달려 순환한다. */
-    .a-mid .card{height:100%;display:grid;gap:2px 9px;align-items:center;
-                 grid-template-columns:46% minmax(0,1fr);
-                 grid-template-areas:"img head"}
-    .a-mid .tgtwrap{grid-area:img;height:100%;display:flex;align-items:center;
-                    justify-content:center}
-    .a-mid .card h2{grid-area:head;margin:0;display:block}
+    .a-mid .card{height:100%;display:flex;flex-direction:column;gap:4px}
+    .a-mid .card h2{margin:0;flex:0 0 auto}
+    .a-mid .tgtwrap{flex:1 1 auto;min-height:0;display:flex;
+                    align-items:center;justify-content:center}
     .a-fly .card{height:100%;display:grid;gap:3px 9px;align-content:center;
                  grid-template-columns:40% minmax(0,1fr);
                  grid-template-areas:"img head" "img bub" "img stat" "img scan"}
@@ -583,7 +581,7 @@ function fit(){
   const room = availH - gap - chrome;
   // 판이 폭에 묶이면 남는 높이를 위 띠가 갖는다. 다만 원본이 알아볼 수 없을
   // 만큼 작아지면 게임이 안 되므로, 화면에 비례한 바닥값을 둔다.
-  const floor = Math.max(96, availH * 0.17), ceil = Math.min(availH * 0.42, room - 110);
+  const floor = Math.max(120, availH * 0.28), ceil = Math.min(availH * 0.48, room - 110);
   let strip = Math.max(floor, Math.min(room - byWidth, ceil));
   if(strip > room - 110) strip = Math.max(96, room - 110);
   arena.style.gridTemplateRows = Math.round(strip) + "px minmax(0,1fr)";
