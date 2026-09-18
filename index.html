@@ -38,6 +38,7 @@
      background:linear-gradient(92deg,var(--you),#c9a6ff 42%,var(--fly));
      -webkit-background-clip:text;background-clip:text;color:transparent}
   #brain{color:var(--faint);font-size:10.5px;flex:1 1 100%;order:9}
+  @media (orientation:portrait),(max-width:840px){#brain{display:none}}
 
   .hud{display:flex;align-items:stretch;gap:10px;margin-bottom:var(--gap)}
   .chip{flex:1;display:flex;align-items:center;gap:10px;padding:9px 12px;min-width:0;
@@ -88,6 +89,7 @@
   .card h2 small{color:var(--faint);font-weight:400;font-size:10.5px;text-align:right}
   .a-mid .card h2 small{display:block;text-align:left;margin-top:3px}
   .wrap{position:relative;border-radius:10px;overflow:hidden}
+  .wrap canvas,.tgtwrap canvas{max-width:100%;max-height:100%}
   canvas{display:block;width:100%;max-width:100%;height:auto;background:#05070b;
          image-rendering:pixelated}
   #you{cursor:pointer}
@@ -174,8 +176,8 @@
     .head,.hud,.bar{flex:0 0 auto}
     /* 두 줄 다 비율로 고정한다. auto 로 두면 줄 높이가 캔버스 크기에 달리고
        캔버스 크기는 다시 줄 높이에 달려서, 재려는 값이 순환한다. */
-    .arena{flex:1 1 auto;min-height:0;
-           grid-template-rows:minmax(0,.40fr) minmax(0,.60fr)}
+    .arena{flex:1 1 auto;min-height:0;align-items:stretch;
+           grid-template-rows:minmax(0,.34fr) minmax(0,1fr)}
     .a-you,.a-fly,.a-mid{min-width:0;min-height:0}
     .a-you .card{height:100%;display:flex;flex-direction:column}
     .a-you .wrap{flex:1 1 auto;min-height:0;display:flex;align-items:center;
@@ -202,17 +204,33 @@
     .chip .col,.chip .num{min-width:0}
     .chip .num{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .head{gap:8px;margin-bottom:7px}
-    .bar{gap:6px 10px;padding:7px 9px}
+    .bar{gap:6px;padding:6px 8px;flex-wrap:nowrap;overflow:hidden}
+    .bar label{display:none}
+    .bar>span{display:flex;align-items:center;gap:5px;min-width:0}
+    button.ghost{padding:5px 7px;font-size:11px;flex:0 0 auto}
+    #pickImg{font-size:0;padding:5px 8px}
+    #pickImg::after{content:"\1F5BC";font-size:13px}
+    input[type=range]{width:64px!important;flex:0 0 auto}
+    #speedv{flex:0 0 auto;font-size:10px}
+    button.ghost{padding:5px 8px;font-size:11px}
+    input[type=range]{width:82px!important}
     h1{font-size:19px}
-    .hud{gap:7px}
-    .chip{padding:7px 9px;gap:7px}
-    .chip .nm{font-size:14px}.chip .num{font-size:16px}
+    .hud{gap:6px}
+    .chip{flex-direction:column;align-items:stretch;gap:1px;padding:5px 8px}
+    .chip .nm{font-size:11px;line-height:1.15}
+    .chip .num{font-size:14px;line-height:1.15}
+    .chip .cap{font-size:9px}
+    .track{height:5px;margin-top:3px}
+    .chip>.cap{align-self:flex-end;margin-top:-13px}
     .vs{display:none}
-    .clockbox{padding:5px 9px}.clockbox .t{font-size:16px}
-    .arena{grid-template-columns:auto 1fr;grid-template-areas:"mid fly" "you you"}
+    .clockbox{padding:4px 7px}.clockbox .t{font-size:15px}.clockbox .c{font-size:8.5px}
+    .arena{grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+           grid-template-areas:"mid fly" "you you"}
     .card{padding:8px}
     .a-mid .card,.a-fly .card{height:100%}
-    .card h2{margin-bottom:6px;font-size:11.5px}
+    .card h2{margin-bottom:6px;font-size:11.5px;white-space:nowrap;overflow:hidden}
+    .a-fly .card h2 small,.a-mid .card h2 small{display:none}
+    .a-fly .card h2{text-overflow:ellipsis}
     #target,#fly,#you{width:auto;height:auto;margin:0 auto}
     .a-fly .wrap,.a-you .wrap,.tgtwrap{display:flex;justify-content:center}
     .tgtwrap::after{font-size:8.5px;right:4px;bottom:3px}
@@ -223,7 +241,8 @@
     .bubble::after{display:none}
     .a-fly .stat{font-size:10px}
     .a-you .card h2 small{display:none}
-    select{max-width:36vw;font-size:14px;padding:7px 8px}
+    select{max-width:none;width:100%;min-width:0;font-size:12px;
+            padding:5px 6px;text-overflow:ellipsis}
     button{padding:10px 18px}
     .credit{font-size:9px;margin-top:11px}
   }
@@ -277,7 +296,7 @@
   <span><label>그림</label> <select id="pic"></select>
     <button class="ghost" id="pickImg">내 그림</button>
     <input type="file" id="file" accept="image/*" hidden></span>
-  <button class="ghost" id="mute" aria-pressed="false">🔊 소리</button>
+  <button class="ghost" id="mute" aria-label="소리" aria-pressed="false">🔊</button>
 </div>
 
 <div class="arena">
@@ -408,7 +427,7 @@ const SFX = {
 };
 $("mute").onclick = ()=>{
   muted = !muted;
-  $("mute").textContent = muted ? "\u{1F508} 음소거" : "\u{1F50A} 소리";
+  $("mute").textContent = muted ? "\u{1F508}" : "\u{1F50A}";
   $("mute").setAttribute("aria-pressed", String(muted));
   if(!muted) SFX.pick();
 };
@@ -471,6 +490,8 @@ function paint(id, board, opt){
     if(o.hide && o.hide.indexOf(slot)>=0) return;
     const [x,y]=slotXY(slot,tw,th,P.cols);
     ctx.drawImage(P.tiles[piece],x,y,tw,th);
+    ctx.strokeStyle="rgba(0,0,0,.55)"; ctx.lineWidth=1;   // 조각 경계
+    ctx.strokeRect(x+.5,y+.5,tw-1,th-1);
     if(piece===slot){
       ctx.strokeStyle="#4ade80"; ctx.lineWidth=3;
       ctx.strokeRect(x+2,y+2,tw-4,th-4);
@@ -526,45 +547,84 @@ function animateSwap(id, before, after, i, j, colour, done){
  * gave it a horizontal scrollbar. So the backing store stays at the frame's
  * own pixels and the CSS size is set here, in pixels, from the measured box.
  */
+/**
+ * Give the board the room, then let the browser tell us the boxes.
+ *
+ * Measuring a box in the same breath as changing the layout that decides it is
+ * how this kept coming out wrong: read too early and you size the canvas from
+ * the previous frame, and a canvas larger than its box is simply clipped. So
+ * fit() now only splits the rows, and a ResizeObserver per box sizes the canvas
+ * afterwards, from a rectangle the browser has already settled. Nothing here
+ * depends on the order the two happen in, or on any guess about font metrics.
+ */
 function fit(){
   const P = S.pieces; if(!P) return;
-  const ar = P.fw / P.fh;
-  const put = (id, box) => {
-    const cv = $(id);
-    if(!box || box.width < 10 || box.height < 10) return;
-    const s = Math.min(box.width / ar, box.height);
-    cv.style.width  = Math.floor(s * ar) + "px";
-    cv.style.height = Math.floor(s) + "px";
-  };
+  const arena = document.querySelector(".arena");
   if(!portrait()){
     for(const id of ["you","fly","target"]){ $(id).style.width=""; $(id).style.height=""; }
+    arena.style.gridTemplateRows = "";
     return;
   }
-  // 캔버스를 잠깐 0 으로 줄여 상자가 제 크기를 드러내게 한 뒤 잰다. 그러지 않으면
-  // 지금 캔버스 크기가 상자 크기에 섞여 들어와 판이 조금씩 커지거나 잘린다.
-  const ids = ["you","fly","target"];
-  for(const id of ids){ $(id).style.width="0px"; $(id).style.height="0px"; }
-  const boxes = {
-    you:    document.querySelector(".a-you .wrap").getBoundingClientRect(),
-    fly:    document.querySelector(".a-fly .wrap").getBoundingClientRect(),
-    target: document.querySelector(".a-mid .tgtwrap").getBoundingClientRect(),
-  };
-  for(const id of ids) put(id, boxes[id]);
+  const youCard = document.querySelector(".a-you .card");
+  const cc = getComputedStyle(youCard), cs = getComputedStyle(arena);
+  const gap = parseFloat(cs.rowGap) || 8;
+  const availW = arena.clientWidth, availH = arena.clientHeight;
+  if(availW < 40 || availH < 40) return;
+
+  // 내 판 카드에서 캔버스 말고 나머지가 먹는 높이. 캔버스 크기와 무관하다.
+  const h2 = youCard.querySelector("h2"), st = youCard.querySelector(".stat");
+  const chrome = (h2 ? h2.offsetHeight : 0) + (st ? st.offsetHeight : 0) +
+    parseFloat(cc.paddingTop) + parseFloat(cc.paddingBottom) + 4;
+  const padX = parseFloat(cc.paddingLeft) + parseFloat(cc.paddingRight) + 2;
+
+  // 내 판이 우선. 폭을 다 쓰는 높이를 구하고 남는 만큼만 위 띠에 준다.
+  const ar = P.fw / P.fh;
+  const byWidth = (availW - padX) / ar;
+  const room = availH - gap - chrome;
+  // 판이 폭에 묶이면 남는 높이를 위 띠가 갖는다. 다만 원본이 알아볼 수 없을
+  // 만큼 작아지면 게임이 안 되므로, 화면에 비례한 바닥값을 둔다.
+  const floor = Math.max(96, availH * 0.17), ceil = Math.min(availH * 0.42, room - 110);
+  let strip = Math.max(floor, Math.min(room - byWidth, ceil));
+  if(strip > room - 110) strip = Math.max(96, room - 110);
+  arena.style.gridTemplateRows = Math.round(strip) + "px minmax(0,1fr)";
+}
+
+/** Size a canvas to whatever box the browser just gave its wrapper. */
+function observe(id, sel){
+  const wrap = document.querySelector(sel);
+  if(!wrap || typeof ResizeObserver === "undefined") return;
+  new ResizeObserver(function(entries){
+    const P = S.pieces; if(!P) return;
+    const b = entries[0].contentRect;
+    if(b.width < 12 || b.height < 12) return;
+    const ar = P.fw / P.fh, cv = $(id);
+    const sz = Math.min(b.width / ar, b.height);
+    const w = Math.max(40, Math.floor(sz * ar)), h = Math.max(40, Math.floor(sz));
+    if(cv.style.width === w + "px" && cv.style.height === h + "px") return;
+    cv.style.width = w + "px"; cv.style.height = h + "px";
+    clearTimeout(S.repaint);
+    S.repaint = setTimeout(repaint, 16);
+  }).observe(wrap);
+}
+
+function repaint(){
+  if(!S.pieces) return;
+  paint("you", S.human, S.pick >= 0 ? {mark:[S.pick], colour:"#5aa2ff"} : null);
+  paint("fly", S.fly);
+  if(S.big){
+    const t = $("target"), c = t.getContext("2d");
+    const w = t.clientWidth || t.width, h = t.clientHeight || t.height;
+    t.width = Math.max(40, Math.round(w * 2));
+    t.height = Math.max(40, Math.round(h * 2));
+    c.imageSmoothingEnabled = true;
+    c.drawImage(S.big, 0, 0, t.width, t.height);
+  }
 }
 
 function relayout(){
   if(!S.pieces) return;
   fit();
-  paint("you", S.human, S.pick>=0 ? {mark:[S.pick],colour:"#5aa2ff"} : null);
-  paint("fly", S.fly);
-  if(S.big){
-    const t=$("target"), c=t.getContext("2d");
-    const w=parseInt(t.style.width)||t.clientWidth||t.width;
-    const h=parseInt(t.style.height)||t.clientHeight||t.height;
-    t.width=Math.max(40,w*2); t.height=Math.max(40,h*2);   // 선명하게
-    c.imageSmoothingEnabled=true;
-    c.drawImage(S.big,0,0,t.width,t.height);
-  }
+  repaint();
 }
 
 const home = b => b.reduce((n,p,s)=>n+(p===s?1:0),0);
@@ -731,7 +791,10 @@ $("zoom").addEventListener("click", ()=>$("zoom").classList.remove("on"));
 
 function showSpeed(){
   const x=SPEEDS[+$("speed").value];
-  $("speedv").textContent="×"+x+(x===1?" 실제":"")+" · "+(BASE_MS/x).toFixed(x<1?0:1)+"ms";
+  const wide = !window.matchMedia("(orientation:portrait),(max-width:840px)").matches;
+  $("speedv").textContent = wide
+    ? "×"+x+(x===1?" 실제":"")+" · "+(BASE_MS/x).toFixed(x<1?0:1)+"ms"
+    : "×"+x;
 }
 $("speed").oninput=showSpeed;
 $("go").onclick=start;
@@ -773,6 +836,9 @@ fetch("brain.bin").then(r=>r.arrayBuffer()).then(buf=>{
   $("brain").textContent="뉴런 "+g.N.toLocaleString()+" · 간선 "+g.E.toLocaleString()+
     " · 학습되는 값 0개 · 브라우저에서 그대로 돈다 ("+Math.round(buf.byteLength/1024)+" KB)";
   $("go").disabled=false;
+  observe("you", ".a-you .wrap");
+  observe("fly", ".a-fly .wrap");
+  observe("target", ".a-mid .tgtwrap");
   drawMap("pr", fly.map("pr", PRW*PRH), PRW, PRH);
   drawMap("l1", fly.map("l1", MAPW*MAPH), MAPW, MAPH);
 }).catch(e=>{ $("brain").textContent="초파리를 불러오지 못했다: "+e.message; });

@@ -8,7 +8,7 @@
   // so it does not care about the aspect as long as the target is sampled the
   // same way, and portrait pieces on a portrait screen are twice the size to hit.
   const LAND = { w: 320, h: 200, pw: 640, ph: 400 };
-  const PORT = { w: 200, h: 320, pw: 400, ph: 640 };
+  const PORT = { w: 240, h: 320, pw: 480, ph: 640 };
 
   function shuffled(n, rng) {
     const b = Array.from({ length: n }, (_, i) => i);
