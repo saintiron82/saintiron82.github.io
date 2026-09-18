@@ -2,37 +2,49 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0b0d12">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>설마 초파리한테 지겠어?</title>
 <meta name="description" content="초파리 뇌 7,858개 뉴런과 그림 맞추기 대결. 커넥톰이 브라우저에서 그대로 돕니다.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 40 40%27%3E%3Crect width=%2740%27 height=%2740%27 rx=%278%27 fill=%27%230b0d12%27/%3E%3Ctext x=%276%27 y=%2731%27 font-size=%2728%27%3E🪰%3C/text%3E%3C/svg%3E">
 <style>
   :root{--bg:#0b0d12;--panel:#141821;--line:#242a36;--ink:#e6e9ef;--dim:#7c869b;
-        --ok:#4ade80;--you:#60a5fa;--fly:#f472b6}
+        --ok:#4ade80;--you:#60a5fa;--fly:#f472b6;--gap:12px}
   *{box-sizing:border-box}
-  body{margin:0;padding:14px 16px 34px;background:var(--bg);color:var(--ink);
-       font:13px/1.55 -apple-system,"Segoe UI","Malgun Gothic",sans-serif;
-       -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-  h1{margin:0 0 2px;font-size:19px;font-weight:700;letter-spacing:-.3px}
-  .sub{color:var(--dim);font-size:11.5px;font-family:ui-monospace,Consolas,monospace}
-  .bar{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin:10px 0 14px;
-       background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px}
-  .bar label{color:var(--dim);font-size:12px}
-  select{background:#0b0d12;color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:4px 7px}
-  button{background:#1f6feb;color:#fff;border:0;border-radius:6px;padding:7px 18px;
-         font-size:13px;font-weight:700;cursor:pointer}
-  button.off{background:#30363d;font-weight:400;padding:5px 11px;font-size:12px}
-  button:disabled{opacity:.45;cursor:default}
-  .arena{display:flex;gap:14px;align-items:flex-start}
-  .side{flex:1 1 0;min-width:0}
-  .middle{flex:0 0 226px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-  .card.you{border-color:#1e3a5f} .card.fly{border-color:#5b2340}
-  .card h2{margin:0 0 8px;font-size:14px;font-weight:700;display:flex;
+  html,body{overscroll-behavior:none}
+  body{margin:0;padding:10px 12px calc(14px + env(safe-area-inset-bottom));
+       background:var(--bg);color:var(--ink);
+       font:13px/1.5 -apple-system,"Segoe UI","Malgun Gothic",sans-serif;
+       -webkit-user-select:none;user-select:none;
+       -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  h1{margin:0;font-size:17px;font-weight:700;letter-spacing:-.3px}
+  .sub{color:var(--dim);font-size:11px;font-family:ui-monospace,Consolas,monospace}
+  .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .top .sub{flex:1 1 100%;order:3}
+
+  .bar{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin-bottom:var(--gap);
+       background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+  .bar label{color:var(--dim);font-size:11.5px}
+  select{background:#0b0d12;color:var(--ink);border:1px solid var(--line);
+         border-radius:5px;padding:5px 7px;font-size:13px;max-width:44vw}
+  input[type=range]{accent-color:var(--fly)}
+  button{background:#1f6feb;color:#fff;border:0;border-radius:7px;padding:9px 20px;
+         font-size:14px;font-weight:700;cursor:pointer}
+  button.off{background:#30363d;font-weight:400;padding:6px 11px;font-size:12px}
+  button:disabled{opacity:.45}
+
+  .arena{display:grid;gap:var(--gap);align-items:start;
+         grid-template-columns:1fr 224px 1fr;
+         grid-template-areas:"you mid fly"}
+  .a-you{grid-area:you}.a-mid{grid-area:mid}.a-fly{grid-area:fly}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+  .card.you{border-color:#1e3a5f}.card.fly{border-color:#5b2340}
+  .card h2{margin:0 0 7px;font-size:13.5px;font-weight:700;display:flex;
            justify-content:space-between;align-items:baseline;gap:8px}
-  .card h2 .who{font-size:15px}
-  .you h2 .who{color:var(--you)} .fly h2 .who{color:var(--fly)}
-  .card h2 small{color:var(--dim);font-weight:400;font-size:11px;
-                 font-family:ui-monospace,Consolas,monospace}
+  .you h2 .who{color:var(--you)}.fly h2 .who{color:var(--fly)}
+  .card h2 small{color:var(--dim);font-weight:400;font-size:10.5px;
+                 font-family:ui-monospace,Consolas,monospace;text-align:right}
   .wrap{position:relative}
   canvas{display:block;width:100%;height:auto;border-radius:6px;background:#07090d;
          image-rendering:pixelated}
@@ -40,72 +52,113 @@
   .veil{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
         border-radius:6px;background:rgba(6,8,12,.72);font-size:34px;font-weight:800;letter-spacing:3px}
   .veil.on{display:flex}
-  .bubble{position:relative;margin:0 0 10px;padding:8px 12px;border-radius:12px;
-          background:#241827;border:1px solid #5b2340;color:#fbcfe8;font-size:13.5px;
-          line-height:1.45;min-height:40px;display:flex;align-items:center}
-  .bubble::after{content:"";position:absolute;left:26px;bottom:-7px;width:12px;height:12px;
+  .bubble{position:relative;margin:0 0 9px;padding:8px 11px;border-radius:12px;
+          background:#241827;border:1px solid #5b2340;color:#fbcfe8;font-size:13px;
+          line-height:1.4;min-height:38px;display:flex;align-items:center}
+  .bubble::after{content:"";position:absolute;left:24px;bottom:-7px;width:12px;height:12px;
                  background:#241827;border-right:1px solid #5b2340;border-bottom:1px solid #5b2340;
                  transform:rotate(45deg)}
-  .stat{margin-top:8px;font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--dim)}
-  .stat b{color:var(--ink);font-size:15px}
-  .think{margin-top:6px;height:5px;border-radius:3px;background:#0b0d12;overflow:hidden}
+  .stat{margin-top:7px;font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--dim)}
+  .stat b{color:var(--ink);font-size:14px}
+  .think{margin-top:5px;height:5px;border-radius:3px;background:#0b0d12;overflow:hidden}
   .think i{display:block;height:100%;width:0;transition:width .1s linear}
-  #youBar{background:var(--you)} #flyBar{background:var(--fly)}
-  .clock{font-family:ui-monospace,Consolas,monospace;font-size:26px;font-weight:700;
-         text-align:center;margin:8px 0 2px}
-  .hint{color:var(--dim);font-size:11.5px;text-align:center;line-height:1.6}
-  .maps{display:flex;gap:6px;margin-top:10px}
-  .maps>div{flex:1;text-align:center;color:var(--dim);font-size:10px}
-  .credit{margin-top:20px;color:#5c657a;font-size:11px}
+  #youBar{background:var(--you)}#flyBar{background:var(--fly)}
+  .clock{font-family:ui-monospace,Consolas,monospace;font-size:25px;font-weight:700;
+         text-align:center;margin:7px 0 1px}
+  .hint{color:var(--dim);font-size:11px;text-align:center;line-height:1.55}
+  .maps{display:flex;gap:5px;margin-top:8px}
+  .maps>div{flex:1;text-align:center;color:var(--dim);font-size:9.5px}
+  /* 원본을 눌러 크게 본다. 시계는 계속 간다 -- 보는 데 시간이 드는 것도 게임이다. */
+  #zoom{position:fixed;inset:0;z-index:50;display:none;align-items:center;
+        justify-content:center;background:rgba(6,8,12,.94);padding:16px;cursor:zoom-out}
+  #zoom.on{display:flex}
+  #zoom canvas{width:auto;height:auto;max-width:96vw;max-height:82vh;border-radius:10px}
+  #zoom .tip{position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));left:0;right:0;
+             text-align:center;color:var(--dim);font-size:12px}
+  #target{cursor:zoom-in}
+  .credit{margin-top:16px;color:#5c657a;font-size:10.5px;line-height:1.6}
   .credit a{color:#6c7f9e}
-  @media (max-width:900px){.arena{flex-wrap:wrap}.middle{flex:1 1 100%;order:-1}}
+
+  /* ---- 세로 화면 ----
+     위 한 줄에 원본과 초파리를 작게 두고, 화면의 나머지를 전부 내 판에 준다.
+     초파리 판은 보기만 하는 것이고 누를 일이 없으니 작아도 된다. 내 판은
+     엄지로 조각을 짚어야 하니 커야 하고, 아래쪽에 있어야 손이 닿는다. ---- */
+  @media (orientation:portrait), (max-width:820px){
+    :root{--gap:8px}
+    body{padding:8px 10px calc(12px + env(safe-area-inset-bottom))}
+    h1{font-size:15px}
+    .arena{grid-template-columns:auto 1fr;
+           grid-template-areas:"mid fly" "you you"}
+    .card{padding:7px 8px}
+    /* 위 띠: 원본과 초파리를 높이로 묶는다 */
+    .a-mid .card,.a-fly .card{height:100%}
+    .a-mid .card h2,.a-fly .card h2{margin-bottom:5px;font-size:11.5px}
+    #target{max-height:25vh;width:auto;margin:0 auto}
+    #fly{max-height:17vh;width:auto;margin:0 auto}
+    .a-fly .wrap{display:flex;justify-content:center}
+    .clock{font-size:19px;margin:5px 0 0}
+    .hint{font-size:10px;line-height:1.4}
+    .maps{display:none}
+    .bubble{font-size:11.5px;min-height:0;padding:6px 9px;margin-bottom:6px;line-height:1.35}
+    .bubble::after{display:none}
+    .a-fly .stat,.a-fly .think{font-size:10.5px}
+    .a-fly .stat b{font-size:12px}
+    /* 내 판: 남는 세로를 다 쓴다 */
+    #you{max-height:52vh;width:auto;margin:0 auto}
+    .a-you .wrap{display:flex;justify-content:center}
+    .a-you .card h2 small{display:none}
+    select{max-width:34vw;font-size:14px;padding:7px}
+    button{padding:10px 18px}
+    .credit{font-size:9.5px;margin-top:10px}
+  }
+  @media (orientation:portrait) and (max-height:720px){
+    #target{max-height:20vh}
+    #fly{max-height:13vh}
+    #you{max-height:46vh}
+    .hint{display:none}
+  }
 </style>
 </head>
 <body>
 
-<h1>설마 초파리한테 지겠어?</h1>
-<div class="sub" id="brain">초파리를 내려받는 중…</div>
+<div class="top">
+  <h1>설마 초파리한테 지겠어?</h1>
+  <button id="go" disabled>시작</button>
+  <div class="sub" id="brain">초파리를 내려받는 중…</div>
+</div>
 
 <div class="bar">
   <span><label>난도</label>
     <select id="size">
-      <option value="0">쉬움 — 6조각</option>
-      <option value="1" selected>보통 — 12조각</option>
-      <option value="2">어려움 — 16조각</option>
-      <option value="3">아주 어려움 — 20조각</option>
-      <option value="4">지옥 — 30조각</option>
+      <option value="0">쉬움 · 6조각</option>
+      <option value="1" selected>보통 · 12조각</option>
+      <option value="2">어려움 · 16조각</option>
+      <option value="3">아주 어려움 · 20조각</option>
+      <option value="4">지옥 · 30조각</option>
     </select></span>
-  <span><label>🪰 초파리 가속</label>
-    <input type="range" id="speed" min="0" max="5" value="2" style="width:140px;vertical-align:middle">
+  <span><label>🪰 가속</label>
+    <input type="range" id="speed" min="0" max="5" value="2" style="width:96px;vertical-align:middle">
     <span class="sub" id="speedv">×1</span></span>
   <span><label>그림</label> <select id="pic"></select>
     <button class="off" id="pickImg">내 그림</button>
-    <input type="file" id="file" accept="image/*" hidden>
-    <span class="sub" id="picked"></span></span>
-  <button id="go" disabled>새 판 시작</button>
+    <input type="file" id="file" accept="image/*" hidden></span>
 </div>
 
 <div class="arena">
-  <div class="side"><div class="card you">
-    <h2><span class="who">사람</span> <small>조각 두 개를 눌러 바꾼다</small></h2>
-    <div class="wrap"><canvas id="you" width="480" height="300"></canvas>
-      <div class="veil" id="youVeil"></div></div>
-    <div class="stat"><b id="youHome">0</b>/<span id="tot">0</span> 제자리 · <b id="youMoves">0</b>수</div>
-    <div class="think"><i id="youBar"></i></div>
-  </div></div>
-
-  <div class="middle"><div class="card">
+  <div class="a-mid"><div class="card">
     <h2>원본 <small id="lvl"></small></h2>
-    <canvas id="target" width="226" height="142"></canvas>
-    <div class="clock" id="clock">0.0초</div>
-    <div class="hint" id="hint">난도를 고르고 새 판 시작</div>
+    <canvas id="target" width="224" height="140"></canvas>
+    <div class="meta">
+      <div class="clock" id="clock">0.0초</div>
+      <div class="hint" id="hint">난도를 고르고 시작</div>
+    </div>
     <div class="maps">
-      <div><canvas id="pr" width="104" height="65"></canvas>광수용체</div>
-      <div><canvas id="l1" width="104" height="65"></canvas>L1</div>
+      <div><canvas id="pr" width="100" height="62"></canvas>광수용체</div>
+      <div><canvas id="l1" width="100" height="62"></canvas>L1</div>
     </div>
   </div></div>
 
-  <div class="side"><div class="card fly">
+  <div class="a-fly"><div class="card fly">
     <h2><span class="who">초파리 🪰</span> <small id="flyTip"></small></h2>
     <div class="bubble" id="says">…</div>
     <div class="wrap"><canvas id="fly" width="480" height="300"></canvas>
@@ -114,24 +167,41 @@
       <b id="flyMoves">0</b>수 · <span id="seen">—</span></div>
     <div class="think"><i id="flyBar"></i></div>
   </div></div>
+
+  <div class="a-you"><div class="card you">
+    <h2><span class="who">사람</span> <small>조각 두 개를 눌러 바꾼다</small></h2>
+    <div class="wrap"><canvas id="you" width="480" height="300"></canvas>
+      <div class="veil" id="youVeil"></div></div>
+    <div class="stat"><b id="youHome">0</b>/<span id="tot">0</span> 제자리 · <b id="youMoves">0</b>수</div>
+    <div class="think"><i id="youBar"></i></div>
+  </div></div>
 </div>
 
-<p class="credit">배선은 실제 초파리 뇌다 — <a href="https://male-cns.janelia.org/" target="_blank" rel="noopener">MaleCNS v1.0</a>, HHMI Janelia, CC BY 4.0. 광수용체 4,512 + L1 1,767, 간선 7,107.</p>
+<div id="zoom"><canvas id="zoomc"></canvas>
+  <div class="tip">아무 데나 눌러 닫기 · 시계는 계속 간다</div></div>
+
+<p class="credit">배선은 실제 초파리 뇌다 —
+<a href="https://male-cns.janelia.org/" target="_blank" rel="noopener">MaleCNS v1.0</a>,
+HHMI Janelia, CC BY 4.0. 광수용체 4,512 + L1 1,767, 간선 7,107.</p>
 
 <script src="fly.js"></script>
 <script src="puzzle.js"></script>
 <script>
 const $ = id => document.getElementById(id);
-const SIZES = [[2,3],[3,4],[4,4],[4,5],[5,6]];
-const MAPW = 30, MAPH = 20, PRW = 48, PRH = 30;
+// 세로 화면에서는 판도 세로로 세운다. 가로 3x4 는 세로에서 4x3 이 된다 --
+// 같은 조각 수인데 폰에서는 조각이 두 배 가까이 커져서 엄지로 누를 만해진다.
+const SIZES_LAND = [[2,3],[3,4],[4,4],[4,5],[5,6]];
+const SIZES_PORT = [[3,2],[4,3],[4,4],[5,4],[6,5]];
 // 초파리의 정직한 속도는 후보 한 장에 18 ms -- 뇌가 하나라 한 장씩 보고,
 // 광수용체에서 라미나까지 12~22 ms가 걸린다. 가속은 그걸 몇 배로 돌리는가다.
 const BASE_MS = 18, SPEEDS = [0.1, 0.5, 1, 2, 5, 10];
-let fly = null, S = {};
+const MAPW = 30, MAPH = 20, PRW = 48, PRH = 30;
+let fly = null, S = {}, picture = null;
+
+const portrait = () => window.matchMedia("(orientation:portrait), (max-width:820px)").matches;
+const frame = () => portrait() ? Puzzle.PORT : Puzzle.LAND;
 
 // ------------------------------------------------------------------ 대사
-// 실제로 하고 있는 일에 붙인다. 초파리가 하는 일은 후보 판을 한 장씩 보고 완성본과
-// 얼마나 닮았는지 재는 것뿐이고, 농담도 거기서 나온다.
 const LINES = {
   look:["{seen}장째… 눈이 하나뿐이라 한 장씩밖에 못 본다",
         "{of}장을 다 봐야 한다고? 나 뉴런 7,858개밖에 없는데",
@@ -146,7 +216,7 @@ const LINES = {
         "닮음 수치가 내려갔다. 내려가는 게 좋은 거 맞지?"],
   bad :["어… 아닌가","이럴 리가 없는데","잠깐만 다시 볼게",
         "내 탓 아니다. 제일 닮은 걸 골랐을 뿐이다"],
-  ahead:["인간 느리네","손이 있는데도 그것밖에 못 하나","나 지금 이기고 있는 거 맞지?"],
+  ahead:["인간 느리네","손가락이 있는데도 그것밖에 못 하나","나 지금 이기고 있는 거 맞지?"],
   behind:["쟤 왜 저렇게 빨라","손가락 쓰는 건 반칙 아닌가",
           "인간은 한 번에 다 보잖아. 나는 한 장씩인데"],
   close:["거의 다 왔다","한 수만 더","이거 내가 이긴다"],
@@ -171,7 +241,8 @@ function tint(v){
   return "rgb("+a.map((x,k)=>Math.round(x+(b[k]-x)*f)).join(",")+")";
 }
 function drawMap(id, m, gw, gh){
-  const cv=$(id), ctx=cv.getContext("2d"), w=cv.width/gw, h=cv.height/gh;
+  const cv=$(id); if(!cv) return;
+  const ctx=cv.getContext("2d"), w=cv.width/gw, h=cv.height/gh;
   ctx.fillStyle="#07090d"; ctx.fillRect(0,0,cv.width,cv.height);
   for(let y=0;y<gh;y++) for(let x=0;x<gw;x++){
     const v=m[y*gw+x]; if(v===null||v===undefined) continue;
@@ -198,30 +269,31 @@ function paint(id, board, mark, colour){
     ctx.strokeStyle=colour; ctx.lineWidth=5; ctx.strokeRect(x+3,y+3,tw-6,th-6);
   }
 }
-function home(b){ return b.reduce((n,p,s)=>n+(p===s?1:0),0); }
+const home = b => b.reduce((n,p,s)=>n+(p===s?1:0),0);
 
 // ------------------------------------------------------------------ 한 판
-let picture = null;
 function start(){
   if(!fly) return;
   if(S.turn) S.turn.stop();
   clearInterval(S.clock); clearTimeout(S.count);
-  const [rows,cols] = SIZES[+$("size").value];
+  const F = frame();
+  const [rows,cols] = (portrait()?SIZES_PORT:SIZES_LAND)[+$("size").value];
   const lookMs = BASE_MS / SPEEDS[+$("speed").value];
-  const img = ($("pic").value === "mine" && picture)
-    ? picture : Puzzle.picture($("pic").value, (Math.random()*1e9)|0);
-  const P = new Puzzle.Pieces(img, rows, cols);
-  const rng = Puzzle.mulberry((Math.random()*1e9)|0);
-  const board = Puzzle.shuffled(P.n, rng);
+  const img = ($("pic").value==="mine" && picture)
+    ? picture : Puzzle.picture($("pic").value, (Math.random()*1e9)|0, F);
+  const P = new Puzzle.Pieces(img, rows, cols, F);
+  const board = Puzzle.shuffled(P.n, Puzzle.mulberry((Math.random()*1e9)|0));
   const solved = Array.from({length:P.n},(_,i)=>i);
 
-  S = { pieces:P, lookMs:lookMs, human:board.slice(), fly:board.slice(), n:P.n,
-        moves:{human:0,fly:0}, pick:-1, winner:null, started:Date.now(),
-        lastHome:home(board), said:0,
+  S = { pieces:P, lookMs, human:board.slice(), fly:board.slice(), n:P.n,
+        moves:{human:0,fly:0}, pick:-1, winner:null, lastHome:home(board), said:0,
         target: Float64Array.from(fly.look(P.render(solved))) };
 
-  for(const id of ["you","fly"]){ const cv=$(id); cv.width=480;
-    cv.height=Math.round(480*P.fh/P.fw); }
+  // 판 캔버스는 그림 비율에 맞춘다. 세로 화면이면 세로로 길어진다.
+  const wide = Math.min(520, Math.max(280, (document.querySelector(".a-you").clientWidth|0) || 360));
+  for(const id of ["you","fly"]){
+    const cv=$(id); cv.width=wide; cv.height=Math.round(wide*P.fh/P.fw);
+  }
   const t=$("target"); t.height=Math.round(t.width*P.fh/P.fw);
   const tc=document.createElement("canvas"); tc.width=P.fw; tc.height=P.fh;
   tc.getContext("2d").drawImage(img,0,0,P.fw,P.fh);
@@ -232,11 +304,10 @@ function start(){
   $("youMoves").textContent=0; $("flyMoves").textContent=0;
   $("youHome").textContent=0; $("flyHome").textContent=0;
   $("youBar").style.width="0%"; $("flyBar").style.width="0%";
-  $("youVeil").classList.remove("on"); $("flyVeil").classList.remove("on");
   $("lvl").textContent=P.n+"조각 · 최단 "+Puzzle.owed(board)+"수";
-  $("flyTip").textContent="한 수에 "+cands+"장 × "+lookMs+"ms ≈ "+
+  $("flyTip").textContent="한 수에 "+cands+"장 × "+lookMs.toFixed(lookMs<10?1:0)+"ms ≈ "+
     (cands*lookMs/1000).toFixed(1)+"초";
-  lastLine=""; says("look",{seen:1,of:cands,ms:lookMs});
+  lastLine=""; says("look",{seen:1,of:cands,ms:lookMs.toFixed(0)});
   paint("you",S.human,null); paint("fly",S.fly,null);
   countdown(3);
 }
@@ -245,25 +316,18 @@ function countdown(left){
   if(left > 0){
     S.locked = true;
     for(const v of ["youVeil","flyVeil"]){
-      $(v).textContent = left;
-      $(v).style.color = "#e6e9ef";
-      $(v).style.fontSize = "72px";
-      $(v).classList.add("on");
+      $(v).textContent=left; $(v).style.color="#e6e9ef";
+      $(v).style.fontSize="clamp(48px,14vw,80px)"; $(v).classList.add("on");
     }
-    $("clock").textContent = left;
-    $("hint").textContent = "준비…";
-    S.count = setTimeout(()=>countdown(left-1), 900);
+    $("clock").textContent=left; $("hint").textContent="준비…";
+    S.count=setTimeout(()=>countdown(left-1), 900);
     return;
   }
-  for(const v of ["youVeil","flyVeil"]){
-    $(v).classList.remove("on");
-    $(v).style.fontSize = "";
-  }
-  $("clock").textContent = "0.0초";
-  $("hint").textContent = "같은 그림, 같은 섞인 상태. 먼저 맞추면 이긴다.";
-  S.locked = false;
-  S.started = Date.now();
-  S.clock = setInterval(()=>{ if(!S.winner)
+  for(const v of ["youVeil","flyVeil"]){ $(v).classList.remove("on"); $(v).style.fontSize=""; }
+  $("clock").textContent="0.0초";
+  $("hint").textContent="같은 그림, 같은 섞인 상태. 먼저 맞추면 이긴다.";
+  S.locked=false; S.started=Date.now();
+  S.clock=setInterval(()=>{ if(!S.winner)
     $("clock").textContent=((Date.now()-S.started)/1000).toFixed(1)+"초"; },100);
   flyTurn();
 }
@@ -272,25 +336,25 @@ function flyTurn(){
   if(S.winner) return;
   S.turn = new Puzzle.Turn(fly, S.pieces, S.fly, S.target, S.lookMs,
     (k,of)=>{
-      $("seen").textContent=k+"/"+of+"장 보는 중";
+      $("seen").textContent=k+"/"+of+"장";
       $("flyBar").style.width=(100*k/of)+"%";
-      if(Date.now()-S.said>2200){ S.said=Date.now(); says("look",{seen:k,of:of,ms:S.lookMs}); }
+      if(Date.now()-S.said>2200){ S.said=Date.now();
+        says("look",{seen:k,of:of,ms:S.lookMs.toFixed(0)}); }
     },
     ([i,j])=>{
       if(S.winner) return;
-      [S.fly[i],S.fly[j]] = [S.fly[j],S.fly[i]];
+      [S.fly[i],S.fly[j]]=[S.fly[j],S.fly[i]];
       S.moves.fly++;
       const h=home(S.fly);
       $("flyMoves").textContent=S.moves.fly; $("flyHome").textContent=h;
       paint("fly",S.fly,[i,j],"#f472b6");
-      // 그 판을 한 번 더 보여 지도를 갱신한다 (초파리가 지금 보고 있는 것)
       fly.look(S.pieces.render(S.fly));
       drawMap("pr", fly.map("pr", PRW*PRH), PRW, PRH);
       drawMap("l1", fly.map("l1", MAPW*MAPH), MAPW, MAPH);
       S.said=Date.now();
       if(S.n-h<=2) says("close");
       else says(h>S.lastHome?"good":(h<S.lastHome?"bad":"look"),
-                {seen:S.pieces.n,of:S.pieces.n});
+                {seen:S.n,of:S.n,ms:S.lookMs.toFixed(0)});
       S.lastHome=h;
       if(h===S.n) return finish("fly");
       flyTurn();
@@ -298,7 +362,8 @@ function flyTurn(){
 }
 
 function finish(who){
-  S.winner=who; if(S.turn) S.turn.stop(); clearInterval(S.clock); clearTimeout(S.count);
+  S.winner=who; if(S.turn) S.turn.stop();
+  clearInterval(S.clock); clearTimeout(S.count);
   const won = who==="human";
   $("clock").textContent=((Date.now()-S.started)/1000).toFixed(1)+"초";
   $("youVeil").textContent=won?"승":"패"; $("flyVeil").textContent=won?"패":"승";
@@ -313,12 +378,13 @@ function finish(who){
 }
 
 // ------------------------------------------------------------------ 입력
-$("you").onclick = e=>{
+function tap(e){
   if(S.winner||S.locked||!S.pieces) return;
   const cv=$("you"), r=cv.getBoundingClientRect(), P=S.pieces;
-  const c=((e.clientX-r.left)/(r.width/P.cols))|0, w=((e.clientY-r.top)/(r.height/P.rows))|0;
+  const pt = e.changedTouches ? e.changedTouches[0] : e;
+  const c=((pt.clientX-r.left)/(r.width/P.cols))|0, w=((pt.clientY-r.top)/(r.height/P.rows))|0;
   const slot=w*P.cols+c;
-  if(slot<0||slot>=S.n) return;
+  if(slot<0||slot>=S.n||c<0||c>=P.cols) return;
   if(S.pick<0){ S.pick=slot; paint("you",S.human,[slot],"#60a5fa"); return; }
   if(S.pick===slot){ S.pick=-1; paint("you",S.human,null); return; }
   const a=S.pick; S.pick=-1;
@@ -330,14 +396,27 @@ $("you").onclick = e=>{
   paint("you",S.human,[a,slot],"#60a5fa");
   if(h-home(S.fly)>=2 && Date.now()-S.said>3500){ S.said=Date.now(); says("behind"); }
   if(h===S.n) finish("human");
-};
+}
+$("you").addEventListener("click", tap);
+$("you").addEventListener("touchend", e=>{ e.preventDefault(); tap(e); }, {passive:false});
+
 function showSpeed(){
   const x = SPEEDS[+$("speed").value];
-  $("speedv").textContent = "×" + x + (x === 1 ? " (실제 속도)" : "") +
-    " · 한 장 " + (BASE_MS / x).toFixed(x < 1 ? 0 : 1) + "ms";
+  $("speedv").textContent = "×"+x+(x===1?" 실제":"")+" · "+(BASE_MS/x).toFixed(x<1?0:1)+"ms";
 }
 $("speed").oninput = showSpeed;
-showSpeed();
+// 원본 확대
+function openZoom(){
+  if(!S.pieces) return;
+  const z=$("zoomc"), t=$("target");
+  z.width=S.pieces.fw*2; z.height=S.pieces.fh*2;
+  const c=z.getContext("2d");
+  c.imageSmoothingEnabled=false;
+  c.drawImage(t,0,0,z.width,z.height);
+  $("zoom").classList.add("on");
+}
+$("target").addEventListener("click", openZoom);
+$("zoom").addEventListener("click", ()=>$("zoom").classList.remove("on"));
 $("go").onclick = start;
 $("pickImg").onclick = ()=>$("file").click();
 $("file").onchange = e=>{
@@ -345,29 +424,31 @@ $("file").onchange = e=>{
   const img=new Image();
   img.onload=()=>{
     picture=img;
-    // 고른 그림을 목록 맨 뒤에 넣고 그걸로 맞춘다
-    let opt=[...$("pic").options].find(o=>o.value==="mine");
-    if(!opt){ opt=document.createElement("option"); opt.value="mine";
-              $("pic").appendChild(opt); }
-    opt.textContent="내 그림 — "+f.name;
-    $("pic").value="mine"; $("picked").textContent="";
+    let o=[...$("pic").options].find(x=>x.value==="mine");
+    if(!o){ o=document.createElement("option"); o.value="mine"; $("pic").appendChild(o); }
+    o.textContent="내 그림"; $("pic").value="mine";
   };
   img.src=URL.createObjectURL(f);
 };
 
-// 기본 탑재 그림 목록. 내려받을 것 없이 캔버스에서 그린다.
-$("pic").innerHTML = Object.entries(Puzzle.PICTURES)
-  .map(([k,v],i)=>'<option value="'+k+'"'+(i?"":" selected")+'>'+v.name+'</option>').join("");
+// 화면을 돌리면 판 비율이 바뀌므로 다시 깐다
+let wasPortrait = portrait();
+window.addEventListener("resize", ()=>{
+  if(portrait() === wasPortrait) return;
+  wasPortrait = portrait();
+  if(S.pieces) start();
+});
 
 // ------------------------------------------------------------------ 시작
+$("pic").innerHTML = Object.entries(Puzzle.PICTURES)
+  .map(([k,v],i)=>'<option value="'+k+'"'+(i?"":" selected")+'>'+v.name+'</option>').join("");
+showSpeed();
 fetch("brain.bin").then(r=>r.arrayBuffer()).then(buf=>{
   const g = FlyBrain.parse(buf);
   fly = new FlyBrain.Fly(g);
-  $("brain").textContent = "광수용체 "+g.PR.toLocaleString()+" + L1 "+g.READ.toLocaleString()+
-    " · 뉴런 "+g.N.toLocaleString()+" · 간선 "+g.E.toLocaleString()+
+  $("brain").textContent = "뉴런 "+g.N.toLocaleString()+" · 간선 "+g.E.toLocaleString()+
     " · 학습되는 값 0개 · 브라우저에서 그대로 돈다 ("+Math.round(buf.byteLength/1024)+" KB)";
   $("go").disabled=false;
-  $("hint").textContent="난도를 고르고 새 판 시작";
   drawMap("pr", fly.map("pr", PRW*PRH), PRW, PRH);
   drawMap("l1", fly.map("l1", MAPW*MAPH), MAPW, MAPH);
 }).catch(e=>{ $("brain").textContent = "초파리를 불러오지 못했다: "+e.message; });

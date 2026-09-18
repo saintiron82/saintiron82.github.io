@@ -3,7 +3,12 @@
 (function (root) {
   'use strict';
 
-  const FW = 320, FH = 200;          // what the fly is shown, greyscale
+  // What the fly is shown, greyscale. Landscape on a desktop, portrait on a
+  // phone held upright -- the fly's retina is sampled in normalised coordinates,
+  // so it does not care about the aspect as long as the target is sampled the
+  // same way, and portrait pieces on a portrait screen are twice the size to hit.
+  const LAND = { w: 320, h: 200, pw: 640, ph: 400 };
+  const PORT = { w: 200, h: 320, pw: 400, ph: 640 };
 
   function shuffled(n, rng) {
     const b = Array.from({ length: n }, (_, i) => i);
@@ -45,9 +50,10 @@
    * Cut a picture into rows x cols and keep each piece twice: once as a canvas
    * for the screen, once as greyscale for the fly.
    */
-  function Pieces(img, rows, cols) {
+  function Pieces(img, rows, cols, frame) {
+    const F = frame || LAND;
     this.rows = rows; this.cols = cols; this.n = rows * cols;
-    this.tw = Math.floor(FW / cols); this.th = Math.floor(FH / rows);
+    this.tw = Math.floor(F.w / cols); this.th = Math.floor(F.h / rows);
     this.fw = this.tw * cols; this.fh = this.th * rows;
 
     const big = document.createElement('canvas');
@@ -136,14 +142,14 @@
    * than another -- so each of these puts something different in every region.
    */
   const PICTURES = {
-    shapes: { name: "도형", draw: function (x, rng) {
-      const sky = x.createLinearGradient(0, 0, 640, 400);
+    shapes: { name: "도형", draw: function (x, rng, W, H) {
+      const sky = x.createLinearGradient(0, 0, W, H);
       sky.addColorStop(0, "#13203a"); sky.addColorStop(1, "#3b1d3a");
-      x.fillStyle = sky; x.fillRect(0, 0, 640, 400);
-      const hues = [12, 45, 95, 150, 200, 280, 330];
+      x.fillStyle = sky; x.fillRect(0, 0, W, H);
+      const hues = [12, 45, 95, 150, (H/2), 280, 330];
       for (let k = 0; k < 26; k++) {
         x.fillStyle = "hsl(" + hues[(rng() * hues.length) | 0] + " 72% " + (40 + rng() * 34) + "%)";
-        const cx = rng() * 640, cy = rng() * 400, r = 24 + rng() * 72;
+        const cx = rng() * W, cy = rng() * H, r = 24 + rng() * 72;
         x.beginPath();
         const kind = (rng() * 3) | 0;
         if (kind === 0) x.arc(cx, cy, r / 2, 0, 6.2832);
@@ -152,42 +158,42 @@
         x.closePath(); x.fill();
       }
     }},
-    tartan: { name: "체크", draw: function (x, rng) {
+    tartan: { name: "체크", draw: function (x, rng, W, H) {
       const base = (rng() * 360) | 0;
-      x.fillStyle = "hsl(" + base + " 40% 22%)"; x.fillRect(0, 0, 640, 400);
+      x.fillStyle = "hsl(" + base + " 40% 22%)"; x.fillRect(0, 0, W, H);
       for (let pass = 0; pass < 2; pass++) {
         let at = 0;
-        while (at < (pass ? 400 : 640)) {
+        while (at < (pass ? H : W)) {
           const w = 8 + rng() * 44;
           x.globalAlpha = 0.28 + rng() * 0.5;
           x.fillStyle = "hsl(" + ((base + [0, 40, 180, 300][(rng() * 4) | 0]) % 360) +
             " " + (45 + rng() * 40) + "% " + (30 + rng() * 45) + "%)";
-          if (pass) x.fillRect(0, at, 640, w); else x.fillRect(at, 0, w, 400);
+          if (pass) x.fillRect(0, at, W, w); else x.fillRect(at, 0, w, H);
           at += w + rng() * 26;
         }
       }
       x.globalAlpha = 1;
     }},
-    waves: { name: "물결", draw: function (x, rng) {
+    waves: { name: "물결", draw: function (x, rng, W, H) {
       const h0 = (rng() * 360) | 0;
-      x.fillStyle = "hsl(" + h0 + " 55% 12%)"; x.fillRect(0, 0, 640, 400);
+      x.fillStyle = "hsl(" + h0 + " 55% 12%)"; x.fillRect(0, 0, W, H);
       for (let k = 0; k < 40; k++) {
-        const amp = 12 + rng() * 60, per = 60 + rng() * 220, off = rng() * 400;
+        const amp = 12 + rng() * 60, per = 60 + rng() * 220, off = rng() * H;
         x.strokeStyle = "hsl(" + ((h0 + k * 7) % 360) + " " + (55 + rng() * 40) + "% " +
           (32 + rng() * 48) + "%)";
         x.lineWidth = 2 + rng() * 9;
         x.beginPath();
-        for (let px = 0; px <= 640; px += 6)
+        for (let px = 0; px <= W; px += 6)
           x[px ? "lineTo" : "moveTo"](px, off + amp * Math.sin(px / per * 6.2832 + k));
         x.stroke();
       }
     }},
-    night: { name: "밤하늘", draw: function (x, rng) {
-      const g = x.createRadialGradient(320, 380, 20, 320, 200, 520);
+    night: { name: "밤하늘", draw: function (x, rng, W, H) {
+      const g = x.createRadialGradient((W/2), (H*0.95), 20, (W/2), (H/2), (W*0.81));
       g.addColorStop(0, "#2b1a44"); g.addColorStop(1, "#05060f");
-      x.fillStyle = g; x.fillRect(0, 0, 640, 400);
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
       for (let k = 0; k < 8; k++) {              // nebulae, so no region is empty
-        const cx = rng() * 640, cy = rng() * 400, r = 60 + rng() * 150;
+        const cx = rng() * W, cy = rng() * H, r = 60 + rng() * 150;
         const n = x.createRadialGradient(cx, cy, 0, cx, cy, r);
         n.addColorStop(0, "hsla(" + ((rng() * 360) | 0) + " 80% 62% / .5)");
         n.addColorStop(1, "hsla(0 0% 0% / 0)");
@@ -195,17 +201,17 @@
       }
       for (let k = 0; k < 900; k++) {
         const s = rng() * rng() * 3.4;
-        x.fillStyle = "hsla(" + (40 + rng() * 200) + " 40% " + (72 + rng() * 28) + "% / " +
+        x.fillStyle = "hsla(" + (40 + rng() * (H/2)) + " 40% " + (72 + rng() * 28) + "% / " +
           (0.4 + rng() * 0.6) + ")";
-        x.beginPath(); x.arc(rng() * 640, rng() * 400, 0.4 + s, 0, 6.2832); x.fill();
+        x.beginPath(); x.arc(rng() * W, rng() * H, 0.4 + s, 0, 6.2832); x.fill();
       }
     }},
-    glass: { name: "스테인드글라스", draw: function (x, rng) {
+    glass: { name: "스테인드글라스", draw: function (x, rng, W, H) {
       const pts = [];
-      for (let k = 0; k < 34; k++) pts.push([rng() * 640, rng() * 400,
+      for (let k = 0; k < 34; k++) pts.push([rng() * W, rng() * H,
         "hsl(" + ((rng() * 360) | 0) + " 78% " + (34 + rng() * 42) + "%)"]);
-      const img = x.createImageData(640, 400), d = img.data;
-      for (let y = 0; y < 400; y += 1) for (let px = 0; px < 640; px += 1) {
+      const img = x.createImageData(W, H), d = img.data;
+      for (let y = 0; y < H; y += 1) for (let px = 0; px < W; px += 1) {
         let best = 0, bd = 1e9, second = 1e9;
         for (let k = 0; k < pts.length; k++) {
           const dx = px - pts[k][0], dy = y - pts[k][1], dd = dx * dx + dy * dy;
@@ -213,7 +219,7 @@
         }
         const lead = (Math.sqrt(second) - Math.sqrt(bd)) < 2.2;   // the leading between panes
         const c = lead ? "#0a0a0c" : pts[best][2];
-        const o = 4 * (y * 640 + px);
+        const o = 4 * (y * W + px);
         if (lead) { d[o] = 10; d[o + 1] = 10; d[o + 2] = 12; }
         else {
           const m = /hsl\((\d+) (\d+)% ([\d.]+)%\)/.exec(c);
@@ -244,5 +250,5 @@
     return cv;
   }
 
-  root.Puzzle = { Pieces, Turn, shuffled, owed, mulberry, picture, PICTURES, FW, FH };
+  root.Puzzle = { Pieces, Turn, shuffled, owed, mulberry, picture, PICTURES, LAND, PORT };
 })(typeof window === 'undefined' ? globalThis : window);
