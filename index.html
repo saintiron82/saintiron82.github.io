@@ -202,13 +202,14 @@
     .chip .col,.chip .num{min-width:0}
     .chip .num{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .head{gap:8px;margin-bottom:7px}
-    .bar{gap:6px;padding:6px 8px;flex-wrap:nowrap;overflow:hidden}
+    .bar{gap:5px 7px;padding:6px 8px;flex-wrap:wrap;overflow:visible}
     .bar label{display:none}
-    .bar>span{display:flex;align-items:center;gap:5px;min-width:0}
+    .bar label.keep{display:inline;font-size:14px;line-height:1}
+    .bar>span{display:flex;align-items:center;gap:4px;min-width:0;flex:0 1 auto}
     button.ghost{padding:5px 7px;font-size:11px;flex:0 0 auto}
     #pickImg{font-size:0;padding:5px 8px}
     #pickImg::after{content:"\1F5BC";font-size:13px}
-    input[type=range]{width:64px!important;flex:0 0 auto}
+    input[type=range]{width:62px!important;flex:0 0 auto}
     #speedv{flex:0 0 auto;font-size:10px}
     button.ghost{padding:5px 8px;font-size:11px}
     input[type=range]{width:82px!important}
@@ -239,8 +240,11 @@
     .bubble::after{display:none}
     .a-fly .stat{font-size:10px}
     .a-you .card h2 small{display:none}
-    select{max-width:none;width:100%;min-width:0;font-size:12px;
-            padding:5px 6px;text-overflow:ellipsis}
+    select{width:auto;min-width:0;max-width:37vw;flex:0 1 auto;
+            font-size:12px;padding:5px 5px;text-overflow:ellipsis}
+    #pic{max-width:26vw}
+    #speedv{flex:0 0 auto;font-size:11px;color:var(--fly);font-weight:700;
+            min-width:26px;text-align:right}
     button{padding:10px 18px}
     .credit{font-size:9px;margin-top:11px}
   }
@@ -288,7 +292,7 @@
       <option value="3">아주 어려움 · 20조각</option>
       <option value="4">지옥 · 30조각</option>
     </select></span>
-  <span><label>🪰 가속</label>
+  <span><label class="keep">🪰</label>
     <input type="range" id="speed" min="0" max="5" value="2" style="width:104px;vertical-align:middle">
     <span class="mono" id="speedv" style="color:var(--dim);font-size:11px">×1</span></span>
   <span><label>그림</label> <select id="pic"></select>
@@ -635,6 +639,22 @@ function hud(){
 }
 
 // ------------------------------------------------------------------ 한 판
+/** Back to the opening state: settings in reach, nothing running. */
+function idle(){
+  if(S.turn) S.turn.stop();
+  clearInterval(S.clock); clearTimeout(S.count); thinking(false);
+  $("over").classList.remove("on"); $("zoom").classList.remove("on");
+  for(const v of ["youVeil","flyVeil"]){ $(v).className="veil"; $(v).textContent=""; }
+  S.winner = "idle"; S.locked = true; S.pick = -1;
+  $("clock").textContent = "0.0";
+  $("hint").textContent = "난도와 속도를 고르고 시작";
+  $("seen").textContent = "\u2014";
+  $("scanBar").style.width = "0%";
+  says("look", {seen:1, of:S.n || 66, ms:String(Math.round(S.lookMs || 18))});
+  $("go").disabled = false;
+  $("go").textContent = "시작";
+}
+
 function start(){
   if(!fly) return;
   if(S.turn) S.turn.stop();
@@ -794,9 +814,20 @@ function showSpeed(){
     ? "×"+x+(x===1?" 실제":"")+" · "+(BASE_MS/x).toFixed(x<1?0:1)+"ms"
     : "×"+x;
 }
+// 세로 화면에서는 난도 문구를 조각 수만 남긴다. 긴 문구가 한 줄의 절반을
+// 차지하면 가속 값 같은 게 밀려나 사라진다.
+const SIZE_LONG = ["쉬움 · 6조각","보통 · 12조각","어려움 · 16조각",
+                   "아주 어려움 · 20조각","지옥 · 30조각"];
+const SIZE_SHORT = ["6조각","12조각","16조각","20조각","30조각"];
+function labelSizes(){
+  const short = portrait();
+  [...$("size").options].forEach((o,i)=>{
+    o.textContent = (short ? SIZE_SHORT : SIZE_LONG)[i] || o.textContent;
+  });
+}
 $("speed").oninput=showSpeed;
 $("go").onclick=start;
-$("again").onclick=start;
+$("again").onclick=idle;
 $("pickImg").onclick=()=>$("file").click();
 $("file").onchange=e=>{
   const f=e.target.files[0]; if(!f) return;
@@ -816,6 +847,7 @@ window.addEventListener("resize", ()=>{
     wasPortrait=portrait();
     if(S.pieces) return start();
   }
+  labelSizes();
   relayout();
 });
 window.addEventListener("orientationchange", ()=>setTimeout(()=>{
@@ -828,6 +860,7 @@ if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>relayou
 $("pic").innerHTML=Object.entries(Puzzle.PICTURES)
   .map(([k,v],i)=>'<option value="'+k+'"'+(i?"":" selected")+'>'+v.name+'</option>').join("");
 showSpeed();
+labelSizes();
 fetch("brain.bin").then(r=>r.arrayBuffer()).then(buf=>{
   const g=FlyBrain.parse(buf);
   fly=new FlyBrain.Fly(g);
