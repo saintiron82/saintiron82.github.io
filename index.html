@@ -175,6 +175,46 @@
   #confetti{position:fixed;inset:0;z-index:55;pointer-events:none;display:none;
             width:100%;height:100%;background:none}
   #confetti.on{display:block}
+  /* 첫 화면: 대왕의 인사와 지금까지의 전황. 판보다 먼저 이것을 본다. */
+  #intro{position:fixed;inset:0;z-index:59;display:none;align-items:center;
+         justify-content:center;padding:18px;
+         background:radial-gradient(900px 600px at 50% 15%, #2a1430 0%, rgba(5,7,12,.96) 70%)}
+  #intro.on{display:flex}
+  #intro .box{width:min(440px,94vw);max-height:90vh;overflow:auto;padding:24px 22px;
+              border-radius:20px;text-align:center;
+              background:linear-gradient(180deg,var(--panel2),var(--panel));
+              border:1px solid #5a2843;animation:cIn2 .3s ease-out}
+  #intro .fly{font-size:44px;line-height:1;margin-bottom:4px;
+              animation:bob 2.4s ease-in-out infinite}
+  #intro .kicker{color:var(--fly);font-size:11px;letter-spacing:2px;font-weight:800;
+                 margin-bottom:2px}
+  #intro .big{font-family:"Jua",sans-serif;font-size:30px;margin-bottom:12px;
+              background:linear-gradient(92deg,var(--you),#c9a6ff 42%,var(--fly));
+              -webkit-background-clip:text;background-clip:text;color:transparent}
+  #intro .why{color:#ffd9ec;font-size:15px;line-height:1.55;margin:0 0 20px;font-weight:700}
+  #intro .tallyhead{color:var(--faint);font-size:10.5px;letter-spacing:.4px;margin-bottom:6px}
+  #intro .tug{margin-bottom:18px}
+  #intro .tug .ends{display:flex;justify-content:space-between;align-items:baseline;
+                    font-size:11.5px;color:var(--faint);margin-bottom:5px}
+  #intro .tug .ends b{font-size:19px;font-weight:900;
+                      font-family:"Roboto Mono",ui-monospace,monospace}
+  #intro .tug .ends .me b{color:var(--you)}
+  #intro .tug .ends .bug b{color:var(--fly)}
+  #intro .rope{position:relative;height:22px;border-radius:9px;overflow:hidden;
+               background:linear-gradient(90deg,#6b2a4d,var(--fly));
+               box-shadow:inset 0 1px 3px #0008}
+  #intro .rope i{position:absolute;left:0;top:0;bottom:0;width:50%;z-index:0;
+                 background:linear-gradient(90deg,var(--you),#2f6fd0);
+                 border-right:2px solid #0b0d12;
+                 transition:width .8s cubic-bezier(.3,1.2,.4,1)}
+  #intro .rope u{position:absolute;left:50%;top:0;bottom:0;width:0;
+                 border-left:1px dashed rgba(255,255,255,.35)}
+  #intro .rope .p{position:absolute;top:0;bottom:0;display:flex;align-items:center;
+                  font-size:11px;font-weight:800;color:#fff;text-shadow:0 1px 2px #0009}
+  #intro .rope .pMe{left:8px} #intro .rope .pBug{right:8px}
+  #intro .tugsay{text-align:center;font-size:13.5px;margin-top:10px;
+                 color:var(--ink);line-height:1.5;min-height:20px;font-weight:700}
+  #intro button{width:100%;padding:12px}
   #howto{position:fixed;inset:0;z-index:58;display:none;align-items:center;
          justify-content:center;background:rgba(5,7,12,.88);padding:18px}
   #howto.on{display:flex}
@@ -384,6 +424,25 @@
     <div class="stat" id="youTip" data-i18n="ui.youHint"></div>
   </div></div>
 </div>
+
+<div id="intro" class="on"><div class="box">
+  <div class="fly">🪰</div>
+  <div class="kicker" data-i18n="intro.kicker"></div>
+  <div class="big" data-i18n="ui.title"></div>
+  <div class="why" id="introSay"></div>
+  <div class="tallyhead" data-i18n="intro.standing"></div>
+  <div class="tug">
+    <div class="ends">
+      <span class="me"><b id="iHuman">–</b> <span data-i18n="ui.you"></span></span>
+      <span class="bug"><span data-i18n="ui.flyEmoji"></span> <b id="iFly">–</b></span>
+    </div>
+    <div class="rope"><i id="iTugMe"></i><u></u>
+      <span class="p pMe mono" id="iPctMe"></span>
+      <span class="p pBug mono" id="iPctFly"></span></div>
+    <div class="tugsay" id="iSay"></div>
+  </div>
+  <button id="introStart" data-i18n="intro.enter"></button>
+</div></div>
 
 <div id="howto"><div class="box">
   <div class="page" id="howP1">
@@ -810,17 +869,40 @@ function tallyHit(key){
     .then(j => j ? (j.value | 0) : null)
     .catch(() => null);
 }
-function tallyShow(h, f){
+/** Draw the rope into whichever panel asked for it. */
+function ropeShow(ids, h, f){
   const known = (h !== null && h !== undefined) || (f !== null && f !== undefined);
   const H = h | 0, F = f | 0, T = H + F;
-  $("tallyHuman").textContent = known ? H.toLocaleString() : "–";
-  $("tallyFly").textContent   = known ? F.toLocaleString() : "–";
-  const pct = T ? (100 * H / T) : 50;
-  const me = Math.round(pct), bug = 100 - me;
-  $("tugMe").style.width = pct.toFixed(1) + "%";
-  $("tugPctMe").textContent  = (known && T) ? me + "%" : "";
-  $("tugPctFly").textContent = (known && T) ? bug + "%" : "";
-  $("tugSay").innerHTML = (known && T) ? tugSay(me) : "";
+  const pct = T ? (100 * H / T) : 50, me = Math.round(pct);
+  $(ids.h).textContent = known ? H.toLocaleString() : "–";
+  $(ids.f).textContent = known ? F.toLocaleString() : "–";
+  $(ids.bar).style.width = pct.toFixed(1) + "%";
+  $(ids.pMe).textContent  = (known && T) ? me + "%" : "";
+  $(ids.pBug).textContent = (known && T) ? (100 - me) + "%" : "";
+  $(ids.say).innerHTML = (known && T) ? tugSay(me) : "";
+}
+const ROPE_OVER  = {h:"tallyHuman", f:"tallyFly", bar:"tugMe",
+                    pMe:"tugPctMe", pBug:"tugPctFly", say:"tugSay"};
+const ROPE_INTRO = {h:"iHuman", f:"iFly", bar:"iTugMe",
+                    pMe:"iPctMe", pBug:"iPctFly", say:"iSay"};
+function tallyShow(h, f){ ropeShow(ROPE_OVER, h, f); }
+
+/**
+ * The opening screen: who you are facing, and how it has gone so far.
+ *
+ * The greeting is picked from where the rope currently sits, so arriving at a
+ * board the fly is winning is met with something other than arriving at one it
+ * is losing.
+ */
+function introShow(h, f){
+  ropeShow(ROPE_INTRO, h, f);
+  const H = h | 0, F = f | 0, tot = H + F;      // T 는 번역 함수라 가리면 안 된다
+  const band = !tot ? "none"
+    : (100 * H / tot) >= 55 ? "behind"
+    : (100 * H / tot) >= 45 ? "even" : "ahead";
+  $("introSay").textContent = "\u201C" +
+    fmt(pick(T("intro." + band)), {h: H.toLocaleString(), f: F.toLocaleString()}) +
+    "\u201D";
 }
 
 /** A line for wherever the rope has ended up. */
@@ -1165,6 +1247,7 @@ $("howStart2").onclick = howBegin;
 $("howMore").onclick   = ()=>howPage(2);
 $("howBack").onclick   = ()=>howPage(1);
 $("go").onclick=howto;
+$("introStart").onclick = ()=>{ $("intro").classList.remove("on"); howto(); };
 $("again").onclick=idle;
 $("pickImg").onclick=()=>$("file").click();
 $("file").onchange=e=>{
@@ -1220,6 +1303,8 @@ fetch("brain.bin").then(r=>r.arrayBuffer()).then(buf=>{
   observe("target", ".a-mid .tgtwrap");
   drawMap("pr", fly.map("pr", PRW*PRH), PRW, PRH);
   drawMap("l1", fly.map("l1", MAPW*MAPH), MAPW, MAPH);
+  introShow(null, null);
+  Promise.all([tallyRead("human"), tallyRead("fly")]).then(([h,f])=>introShow(h, f));
 }).catch(e=>{ $("brain").textContent = "\u2014 " + e.message; });
 </script>
 </body>
