@@ -19,7 +19,7 @@
     --gap:14px; --r:14px;
   }
   *{box-sizing:border-box}
-  html,body{overscroll-behavior:none}
+  html,body{overscroll-behavior:none;max-width:100%;overflow-x:hidden}
   body{
     margin:0;padding:12px 14px calc(16px + env(safe-area-inset-bottom));
     background:
@@ -87,7 +87,8 @@
            display:flex;justify-content:space-between;align-items:baseline;gap:8px}
   .card h2 small{color:var(--faint);font-weight:400;font-size:10.5px;text-align:right}
   .wrap{position:relative;border-radius:10px;overflow:hidden}
-  canvas{display:block;width:100%;height:auto;background:#05070b;image-rendering:pixelated}
+  canvas{display:block;width:100%;max-width:100%;height:auto;background:#05070b;
+         image-rendering:pixelated}
   #you{cursor:pointer}
   .a-you .wrap{box-shadow:0 0 0 1px #24384f,0 14px 40px -24px var(--you)}
   .a-fly .wrap{box-shadow:0 0 0 1px #4a2238,0 14px 40px -24px var(--fly)}
@@ -161,8 +162,24 @@
      위 한 줄에 원본과 초파리를 작게, 나머지는 전부 내 판에. 초파리 판은 보기만
      하는 것이라 작아도 되고, 내 판은 엄지가 닿는 아래쪽에 크게 있어야 한다. */
   @media (orientation:portrait),(max-width:840px){
-    :root{--gap:9px;--r:12px}
-    body{padding:9px 10px calc(12px + env(safe-area-inset-bottom))}
+    :root{--gap:8px;--r:12px}
+    /* 한 화면에 들어가야 한다. 세로로 쌓고, 남는 높이를 전부 내 판에 준다.
+       판 크기는 JS 의 fit() 이 실제 남은 공간을 재서 픽셀로 박아 넣는다 --
+       캔버스에 width:auto 를 주면 고유폭이 그대로 나와 가로 스크롤이 생긴다. */
+    html,body{height:100%}
+    body{height:100vh;height:100dvh;   /* dvh 를 모르는 브라우저는 vh 로 */
+         overflow:hidden;display:flex;flex-direction:column;
+         padding:8px 9px calc(8px + env(safe-area-inset-bottom))}
+    .head,.hud,.bar{flex:0 0 auto}
+    .arena{flex:1 1 auto;min-height:0;grid-template-rows:auto minmax(0,1fr)}
+    .a-you,.a-fly,.a-mid{min-width:0;min-height:0}
+    .a-you .card{height:100%;display:flex;flex-direction:column}
+    .a-you .wrap{flex:1 1 auto;min-height:0;align-items:center}
+    .credit{display:none}
+    .chip .col,.chip .num{min-width:0}
+    .chip .num{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .head{gap:8px;margin-bottom:7px}
+    .bar{gap:6px 10px;padding:7px 9px}
     h1{font-size:19px}
     .hud{gap:7px}
     .chip{padding:7px 9px;gap:7px}
@@ -173,24 +190,22 @@
     .card{padding:8px}
     .a-mid .card,.a-fly .card{height:100%}
     .card h2{margin-bottom:6px;font-size:11.5px}
-    #target{max-height:24vh;width:auto;margin:0 auto}
-    #fly{max-height:17vh;width:auto;margin:0 auto}
+    #target,#fly,#you{width:auto;height:auto;margin:0 auto}
     .a-fly .wrap,.a-you .wrap,.tgtwrap{display:flex;justify-content:center}
     .tgtwrap::after{font-size:8.5px;right:4px;bottom:3px}
     .maps{display:none}
-    .hint{font-size:9.5px}
+    .hint{display:none}
     .bubble{font-size:12px;min-height:0;padding:7px 9px;margin-bottom:7px;line-height:1.35}
     .bubble::after{display:none}
     .a-fly .stat{font-size:10px}
-    #you{max-height:50vh;width:auto;margin:0 auto}
     .a-you .card h2 small{display:none}
     select{max-width:36vw;font-size:14px;padding:7px 8px}
     button{padding:10px 18px}
     .credit{font-size:9px;margin-top:11px}
   }
   @media (orientation:portrait) and (max-height:730px){
-    #target{max-height:19vh}#fly{max-height:13vh}#you{max-height:45vh}
     .hint{display:none}
+    .head h1{font-size:17px}
   }
 </style>
 </head>
@@ -478,6 +493,43 @@ function animateSwap(id, before, after, i, j, colour, done){
   })(t0);
 }
 
+
+/**
+ * Size the three canvases to the space that is actually there.
+ *
+ * A canvas is a replaced element: leave it at width:auto and it takes its
+ * intrinsic width, which on a phone pushed the page wider than the screen and
+ * gave it a horizontal scrollbar. So the backing store stays at the frame's
+ * own pixels and the CSS size is set here, in pixels, from the measured box.
+ */
+function fit(){
+  const P = S.pieces; if(!P) return;
+  const ar = P.fw / P.fh;                         // 그림 가로세로비
+  const put = (id, w, h) => {
+    const cv = $(id);
+    const s = Math.min(w / ar, h);                // 높이 기준으로 맞춘다
+    cv.style.height = Math.max(40, Math.floor(s)) + "px";
+    cv.style.width  = Math.max(40, Math.floor(s * ar)) + "px";
+  };
+  if(!portrait()){
+    for(const id of ["you","fly"]) { $(id).style.width=""; $(id).style.height=""; }
+    $("target").style.width=""; $("target").style.height="";
+    return;
+  }
+  const arena = document.querySelector(".arena");
+  const box = arena.getBoundingClientRect();
+  const gap = 8, pad = 2 * 8 + 2;                 // 카드 안쪽 여백
+  // 위 띠: 원본과 초파리가 나란히. 남는 높이의 33% 를 준다.
+  const stripH = Math.max(100, Math.min(box.height * 0.36, 240));
+  const half = (box.width - gap) / 2;
+  const midH = stripH - 32;                                  // 제목만
+  const flyH = stripH - 34 - 46;                             // 제목 + 말풍선 + 막대
+  put("target", half - pad, Math.max(60, midH));
+  put("fly",    half - pad, Math.max(52, flyH));
+  const youH = box.height - stripH - gap - 34 - 24;          // 제목 + 아래 한 줄
+  put("you", box.width - pad, Math.max(120, youH));
+}
+
 const home = b => b.reduce((n,p,s)=>n+(p===s?1:0),0);
 function hud(){
   const h=home(S.human), f=home(S.fly);
@@ -523,6 +575,7 @@ function start(){
   $("flyTip").textContent="한 수에 "+cands+"장 × "+lookMs.toFixed(lookMs<10?1:0)+"ms";
   hud();
   lastLine=""; says("look",{seen:1,of:cands,ms:lookMs.toFixed(0)});
+  fit();
   paint("you",S.human); paint("fly",S.fly);
   countdown(3);
 }
@@ -662,10 +715,16 @@ $("file").onchange=e=>{
 
 let wasPortrait=portrait();
 window.addEventListener("resize", ()=>{
-  if(portrait()===wasPortrait) return;
-  wasPortrait=portrait();
-  if(S.pieces) start();
+  if(portrait()!==wasPortrait){          // 화면을 돌리면 자르기가 바뀐다
+    wasPortrait=portrait();
+    if(S.pieces) return start();
+  }
+  fit();
+  if(S.pieces){ paint("you",S.human); paint("fly",S.fly); }
 });
+window.addEventListener("orientationchange", ()=>setTimeout(()=>{
+  wasPortrait=portrait(); if(S.pieces) start();
+}, 250));
 
 // ------------------------------------------------------------------ 시작
 $("pic").innerHTML=Object.entries(Puzzle.PICTURES)
