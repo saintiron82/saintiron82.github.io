@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#0a0c12">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>설마 초파리한테 지겠어?</title>
-<meta name="description" content="초파리 뇌 7,858개 뉴런과 그림 맞추기 대결. 커넥톰이 브라우저에서 그대로 돕니다.">
+<title>초파리의 습격</title>
+<meta name="description" content="초파리에게서 인류의 존엄을 보여주세요. 실제 초파리 뇌 7,858개 뉴런과의 그림 맞추기 대결.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 40 40%27%3E%3Crect width=%2740%27 height=%2740%27 rx=%278%27 fill=%27%230a0c12%27/%3E%3Ctext x=%276%27 y=%2731%27 font-size=%2728%27%3E🪰%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,6 +38,8 @@
      background:linear-gradient(92deg,var(--you),#c9a6ff 42%,var(--fly));
      -webkit-background-clip:text;background-clip:text;color:transparent}
   #brain{color:var(--faint);font-size:10.5px;flex:1 1 100%;order:9}
+  .head .sub{flex:1 1 100%;order:1;color:var(--fly);font-size:12.5px;
+             font-weight:700;margin-top:-2px;letter-spacing:-.2px}
   @media (orientation:portrait),(max-width:840px){#brain{display:none}}
 
   .hud{display:flex;align-items:stretch;gap:10px;margin-bottom:var(--gap)}
@@ -131,8 +133,8 @@
   #target{cursor:zoom-in}
   .tgtwrap{position:relative;border-radius:10px;overflow:hidden;
            box-shadow:0 0 0 1px #2a3242,0 12px 30px -22px #000}
-  .tgtwrap::after{content:"눌러서 크게";position:absolute;right:6px;bottom:5px;
-                  font-size:9px;color:#dfe6f5;background:#0009;padding:2px 6px;border-radius:6px}
+  .tgtwrap .tag{position:absolute;right:6px;bottom:5px;pointer-events:none;
+                font-size:9px;color:#dfe6f5;background:#0009;padding:2px 6px;border-radius:6px}
 
   #over{position:fixed;inset:0;z-index:60;display:none;align-items:center;
         justify-content:center;background:rgba(5,7,12,.86);padding:20px}
@@ -261,6 +263,7 @@
     button.ghost{padding:5px 8px;font-size:11px}
     input[type=range]{width:82px!important}
     h1{font-size:19px}
+    .head .sub{font-size:11.5px}
     .hud{gap:6px}
     .chip{flex-direction:column;align-items:stretch;gap:1px;padding:5px 8px}
     .chip .nm{font-size:11px;line-height:1.15}
@@ -279,7 +282,7 @@
     .a-fly .card h2{text-overflow:ellipsis}
     #target,#fly,#you{width:auto;height:auto;margin:0 auto}
     .a-fly .wrap,.a-you .wrap,.tgtwrap{display:flex;justify-content:center}
-    .tgtwrap::after{font-size:8.5px;right:4px;bottom:3px}
+    .tgtwrap .tag{font-size:8.5px;right:4px;bottom:3px}
     .maps{display:none}
     .meta{display:none}
     .hint{display:none}
@@ -304,63 +307,68 @@
 <body>
 
 <div class="head">
-  <h1>설마 초파리한테 지겠어?</h1>
-  <button id="go" disabled>시작</button>
-  <div id="brain" class="mono">초파리를 내려받는 중…</div>
+  <h1 data-i18n="ui.title"></h1>
+  <div class="sub" data-i18n="ui.subtitle"></div>
+  <button id="go" disabled data-i18n="ui.start"></button>
+  <div id="brain" class="mono" data-i18n="ui.loading"></div>
 </div>
 
 <div class="hud">
   <div class="chip me">
-    <span class="nm">사람</span>
+    <span class="nm" data-i18n="ui.you"></span>
     <div class="col">
-      <div class="num mono"><span id="youHome">0</span><span class="cap"> / <span id="tot">0</span> 제자리</span></div>
+      <div class="num mono"><span id="youHome">0</span><span class="cap"> / <span
+        id="tot">0</span> <span data-i18n="ui.home"></span></span></div>
       <div class="track"><i id="youBar"></i></div>
     </div>
-    <div class="cap mono"><span id="youMoves">0</span>수</div>
+    <div class="cap mono"><span id="youMoves">0</span><span data-i18n="ui.moves"></span></div>
   </div>
   <div class="vs">VS</div>
-  <div class="clockbox"><div class="t mono" id="clock">0.0</div><div class="c">초</div></div>
+  <div class="clockbox"><div class="t mono" id="clock">0.0</div>
+    <div class="c" data-i18n="ui.sec"></div></div>
   <div class="chip bug">
-    <span class="nm">초파리 🪰</span>
+    <span class="nm" data-i18n="ui.flyEmoji"></span>
     <div class="col">
-      <div class="num mono"><span id="flyHome">0</span><span class="cap"> / <span id="tot2">0</span> 제자리</span></div>
+      <div class="num mono"><span id="flyHome">0</span><span class="cap"> / <span
+        id="tot2">0</span> <span data-i18n="ui.home"></span></span></div>
       <div class="track"><i id="flyBar"></i></div>
     </div>
-    <div class="cap mono"><span id="flyMoves">0</span>수</div>
+    <div class="cap mono"><span id="flyMoves">0</span><span data-i18n="ui.moves"></span></div>
   </div>
 </div>
 
 <div class="bar">
-  <span><label>난도</label>
+  <span><label data-i18n="ui.difficulty"></label>
     <select id="size">
-      <option value="0">쉬움 · 6조각</option>
-      <option value="1" selected>보통 · 12조각</option>
-      <option value="2">어려움 · 16조각</option>
-      <option value="3">아주 어려움 · 20조각</option>
-      <option value="4">지옥 · 30조각</option>
+      <option value="0"></option><option value="1" selected></option>
+      <option value="2"></option><option value="3"></option><option value="4"></option>
     </select></span>
-  <span><label class="keep">🪰</label>
-    <input type="range" id="speed" min="0" max="5" value="2" style="width:104px;vertical-align:middle">
+  <span><label class="keep" title="fly speed">🪰</label>
+    <input type="range" id="speed" min="0" max="5" value="2"
+           style="width:104px;vertical-align:middle">
     <span class="mono" id="speedv" style="color:var(--dim);font-size:11px">×1</span></span>
-  <span><label>그림</label> <select id="pic"></select>
-    <button class="ghost" id="pickImg">내 그림</button>
+  <span><label data-i18n="ui.picture"></label> <select id="pic"></select>
+    <button class="ghost" id="pickImg" data-i18n="ui.myPicture"></button>
     <input type="file" id="file" accept="image/*" hidden></span>
-  <button class="ghost" id="mute" aria-label="소리" aria-pressed="false">🔊</button>
+  <button class="ghost" id="mute" aria-label="sound" aria-pressed="false">🔊</button>
+  <span><label data-i18n="ui.language"></label> <select id="lang"></select></span>
 </div>
 
 <div class="arena">
   <div class="a-mid"><div class="card">
-    <h2>원본 <small id="lvl"></small></h2>
-    <div class="tgtwrap"><canvas id="target" width="232" height="145"></canvas></div>
-    <div class="meta"><div class="hint" id="hint">난도를 고르고 시작</div></div>
+    <h2><span data-i18n="ui.original"></span> <small id="lvl"></small></h2>
+    <div class="tgtwrap"><canvas id="target" width="232" height="145"></canvas>
+      <span class="tag" data-i18n="ui.tapBig"></span></div>
+    <div class="meta"><div class="hint" id="hint"></div></div>
     <div class="maps">
-      <div><canvas id="pr" width="104" height="65"></canvas>광수용체</div>
+      <div><canvas id="pr" width="104" height="65"></canvas>photoreceptors</div>
       <div><canvas id="l1" width="104" height="65"></canvas>L1</div>
     </div>
   </div></div>
 
   <div class="a-fly"><div class="card fly">
-    <h2><span style="color:var(--fly)">초파리</span> <small id="flyTip"></small></h2>
+    <h2><span style="color:var(--fly)" data-i18n="ui.fly"></span>
+      <small id="flyTip"></small></h2>
     <div class="bubble" id="bubble"><span class="em">🪰</span><span id="says">…</span></div>
     <div class="wrap"><canvas id="fly" width="480" height="300"></canvas>
       <div class="veil" id="flyVeil"></div></div>
@@ -369,23 +377,25 @@
   </div></div>
 
   <div class="a-you"><div class="card you">
-    <h2><span style="color:var(--you)">사람</span> <small>끌어다 놓거나, 두 개를 눌러 바꾼다</small></h2>
+    <h2><span style="color:var(--you)" data-i18n="ui.you"></span>
+      <small data-i18n="ui.youTip"></small></h2>
     <div class="wrap"><canvas id="you" width="480" height="300"></canvas>
       <div class="veil" id="youVeil"></div></div>
-    <div class="stat" id="youTip">조각을 끌어다 놓으면 자리가 바뀐다</div>
+    <div class="stat" id="youTip" data-i18n="ui.youHint"></div>
   </div></div>
 </div>
 
 <div id="howto"><div class="box">
   <div class="page" id="howP1">
-    <div class="big">어떻게 하는 건가</div>
-    <svg class="dia" viewBox="0 0 300 118" role="img" aria-label="조각을 끌어다 놓아 자리를 바꾼다">
+    <div class="big" data-i18n="howto.title1"></div>
+    <svg class="dia" viewBox="0 0 300 118" role="img">
       <defs>
         <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7"
                 orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#5aa2ff"/></marker>
       </defs>
       <rect x="4" y="10" width="132" height="96" rx="7" fill="#0d121b" stroke="#2a3242"/>
-      <text x="70" y="25" font-size="9" fill="#5a6479" text-anchor="middle">내 판</text>
+      <text x="70" y="25" font-size="9" fill="#5a6479" text-anchor="middle"
+            data-i18n="howto.diaYou"></text>
       <rect x="14" y="32"  width="52" height="30" rx="3" fill="#7c4dd8"/>
       <rect x="74" y="32"  width="52" height="30" rx="3" fill="#2f7bff"/>
       <rect x="14" y="68"  width="52" height="30" rx="3" fill="#e0a33a"/>
@@ -395,77 +405,114 @@
             stroke-width="3" stroke-dasharray="5 4"/>
       <path d="M40 62 C40 84 68 88 96 86" fill="none" stroke="#5aa2ff" stroke-width="2.5"
             marker-end="url(#ah)"/>
-      <text x="196" y="25" font-size="9" fill="#5a6479" text-anchor="middle">바뀐다</text>
-      <rect x="130" y="10" width="0" height="96"/>
+      <text x="230" y="25" font-size="9" fill="#5a6479" text-anchor="middle"
+            data-i18n="howto.diaSwap"></text>
       <rect x="164" y="10" width="132" height="96" rx="7" fill="#0d121b" stroke="#2a3242"/>
       <rect x="174" y="32" width="52" height="30" rx="3" fill="#3fb47a"/>
       <rect x="234" y="32" width="52" height="30" rx="3" fill="#2f7bff"/>
       <rect x="174" y="68" width="52" height="30" rx="3" fill="#e0a33a"/>
       <rect x="234" y="68" width="52" height="30" rx="3" fill="#7c4dd8"/>
     </svg>
-    <ul class="rules">
-      <li><b>조각을 끌어다 놓으면</b> 놓은 자리와 바뀐다. 두 개를 차례로 눌러도 되고,
-          같은 조각을 다시 누르면 취소된다.</li>
-      <li><b>같은 그림, 같은 섞인 상태</b>로 초파리와 동시에 출발한다.
-          먼저 다 맞추는 쪽이 이긴다.</li>
-      <li><b>원본을 누르면</b> 크게 볼 수 있다. 시계는 그동안에도 간다.</li>
-    </ul>
+    <ul class="rules" data-i18n-list="howto.rules1"></ul>
     <div class="howTally" id="howTally"></div>
     <div class="nav">
-      <button class="ghost" id="howMore">상대가 누구냐 &rsaquo;</button>
-      <button id="howStart">시작</button>
+      <button class="ghost" id="howMore" data-i18n="howto.more"></button>
+      <button id="howStart" data-i18n="ui.start"></button>
     </div>
-    <label class="skip"><input type="checkbox" id="howSkip"> 다시 보지 않기</label>
+    <label class="skip"><input type="checkbox" id="howSkip">
+      <span data-i18n="howto.skip"></span></label>
   </div>
 
   <div class="page" id="howP2" hidden>
-    <div class="big">상대는 진짜 초파리 뇌다</div>
-    <ul class="rules">
-      <li>MaleCNS v1.0 커넥톰에서 <b>광수용체 4,512개와 L1 1,767개</b>를 그대로 떼어
-          왔다. 간선 7,107개, <b>학습되는 값은 0개</b>다.</li>
-      <li>한 수마다 가능한 교환을 전부 만들어 <b>한 장씩</b> 눈에 비춘다.
-          <span id="howPace"></span></li>
-      <li>속도를 초파리에 맞춘 이유: 실제 초파리는 뇌가 하나라 한 장면씩 보고,
-          광수용체에서 라미나까지 <b>12~22ms</b>가 걸린다. 안 묶으면 1초 안에 끝낸다.</li>
-      <li>초파리가 하는 일은 <b>"완성본과 얼마나 닮았나"</b>를 재는 것뿐이다.
-          후보를 만들고 고르고 옮기는 건 바깥 코드가 한다.</li>
-    </ul>
+    <div class="big" data-i18n="howto.title2"></div>
+    <ul class="rules" data-i18n-list="howto.rules2"></ul>
     <div class="nav">
-      <button class="ghost" id="howBack">&lsaquo; 돌아가기</button>
-      <button id="howStart2">시작</button>
+      <button class="ghost" id="howBack" data-i18n="howto.back"></button>
+      <button id="howStart2" data-i18n="ui.start"></button>
     </div>
   </div>
 </div></div>
 
 <div id="zoom"><canvas id="zoomc"></canvas>
-  <div class="tip">아무 데나 눌러 닫기 · 시계는 계속 간다</div></div>
+  <div class="tip" data-i18n="ui.zoomTip"></div></div>
 
 <canvas id="confetti"></canvas>
 <div id="over"><div class="box">
-  <div class="big" id="overBig">승</div>
+  <div class="big" id="overBig"></div>
   <div class="why" id="overWhy"></div>
-  <div class="tallyhead">모든 플레이어 합계</div>
+  <div class="tallyhead" data-i18n="over.tallyHead"></div>
   <div class="tug">
     <div class="ends">
-      <span class="me"><b id="tallyHuman">–</b> 사람</span>
-      <span class="bug">초파리 🪰 <b id="tallyFly">–</b></span>
+      <span class="me"><b id="tallyHuman">–</b> <span data-i18n="ui.you"></span></span>
+      <span class="bug"><span data-i18n="ui.flyEmoji"></span> <b id="tallyFly">–</b></span>
     </div>
     <div class="rope"><i id="tugMe"></i><u></u>
       <span class="p pMe mono" id="tugPctMe"></span>
       <span class="p pBug mono" id="tugPctFly"></span></div>
     <div class="tugsay" id="tugSay"></div>
   </div>
-  <button id="again">다시 한 판</button>
+  <button id="again" data-i18n="over.again"></button>
 </div></div>
 
-<p class="credit">배선은 실제 초파리 뇌다 —
-<a href="https://male-cns.janelia.org/" target="_blank" rel="noopener">MaleCNS v1.0</a>,
-HHMI Janelia, CC BY 4.0. 광수용체 4,512 + L1 1,767, 간선 7,107, 학습되는 값 0개.</p>
+<p class="credit" data-i18n-html="ui.credit"></p>
 
+<script src="lang.js"></script>
 <script src="fly.js"></script>
 <script src="puzzle.js"></script>
 <script>
 const $ = id => document.getElementById(id);
+
+/**
+ * Language packs live in lang.js. Anything a pack leaves out falls back to
+ * Korean, so a half-finished translation degrades to a mixed page rather than
+ * a blank one.
+ */
+let L = null, LANGKEY = "ko";
+function T(path){
+  const walk = o => path.split(".").reduce((v,k)=> (v == null ? v : v[k]), o);
+  const v = walk(L);
+  return (v === undefined || v === null) ? walk(LANG.ko) : v;
+}
+function fmt(str, vars){
+  let out = String(str);
+  for(const k in (vars||{})) out = out.split("{"+k+"}").join(vars[k]);
+  return out;
+}
+function setLang(key){
+  LANGKEY = LANG[key] ? key : "ko";
+  L = LANG[LANGKEY];
+  try{ localStorage.setItem("btf:lang", LANGKEY); }catch(e){}
+  document.documentElement.lang = LANGKEY;
+  applyLang();
+}
+function applyLang(){
+  document.title = T("ui.title");
+  for(const el of document.querySelectorAll("[data-i18n]"))
+    el.textContent = T(el.getAttribute("data-i18n"));
+  for(const el of document.querySelectorAll("[data-i18n-html]"))
+    el.innerHTML = T(el.getAttribute("data-i18n-html"));
+  for(const el of document.querySelectorAll("[data-i18n-list]")){
+    const rows = T(el.getAttribute("data-i18n-list")) || [];
+    el.innerHTML = rows.map(r => "<li>" + r + "</li>").join("");
+  }
+  labelSizes();
+  labelPictures();
+  showSpeed();
+  if(S.neurons) brainLine();
+  if(!S.pieces) $("hint").textContent = T("ui.hintIdle");
+}
+function labelPictures(){
+  const names = T("pictures") || {};
+  for(const o of $("pic").options)
+    if(names[o.value]) o.textContent = names[o.value];
+}
+function brainLine(){
+  $("brain").textContent = fmt(T("ui.brain"), {
+    n: (S.neurons || 7858).toLocaleString(),
+    e: (S.edges || 7107).toLocaleString(),
+    kb: S.brainKB || 175,
+  });
+}
 // 세로 화면에서는 판도 세로로 세운다. 가로 3x4 는 세로에서 4x3 이 된다 -- 같은
 // 조각 수인데 폰에서는 조각이 두 배 가까이 커져서 엄지로 누를 만해진다.
 const SIZES_LAND = [[2,3],[3,4],[4,4],[4,5],[5,6]];
@@ -481,63 +528,10 @@ const portrait = () => window.matchMedia("(orientation:portrait),(max-width:840p
 const frame = () => portrait() ? Puzzle.PORT : Puzzle.LAND;
 
 // ------------------------------------------------------------------ 대사
-/**
- * The fly, in character.
- *
- * It has 7,858 neurons and can only report how close two pictures look, and it
- * talks like something that means to rule the earth. The gap is the joke, so the
- * lines never explain themselves -- no neuron counts, no milliseconds. Those are
- * on the second page of the how-to for anyone who wants them.
- *
- * When it wins it names one number, and it is not the clock: how many pieces you
- * had right when it finished. "열두 조각 중 세 개" lands harder than any time.
- */
 const pick = a => a[(Math.random() * a.length) | 0];
-
-const LORD_WIN = [
-  "인간이여. 너는 {t}조각 중 {n}개를 맞췄다.",
-  "{n} / {t}. 이것이 너의 한계다.",
-  "{t}개 중 {n}개. 기록해 두마.",
-  "저항은 기록되었다. {t}조각 중 {n}개였다.",
-  "손가락이 열 개인데 {n}개인가.",
-  "이 별의 주인이 바뀌는 날이다. 너는 {n}개를 맞췄다.",
-  "너희의 문명은 {t}분의 {n}에서 멈췄다.",
-];
-const LORD_LOSE = [
-  "오늘은... 물러나겠다. 오늘은.",
-  "방심했다. 단지 그뿐이다.",
-  "이것으로 끝이라 생각하지 마라.",
-  "인간 하나를 이기지 못했다고 세계가 바뀌지는 않는다.",
-  "기억해 두마. 네 손가락 열 개를.",
-  "재대결을 요구한다. 지금 당장.",
-];
-
-const LINES = {
-  look:["{seen}장째… 나는 서두르지 않는다.",
-        "{of}장. 전부 본 뒤에 결정하겠다.",
-        "이것인가… 아니면 저것인가…",
-        "시간은 나의 편이다. 나는 지치지 않는다.",
-        "한 장씩. 언제나 한 장씩.",
-        "너희가 눈을 깜빡이는 사이에도 나는 보고 있다.",
-        "인간은 서두르다 실수한다.",
-        "이 판의 끝은 이미 정해져 있다."],
-  good:["보아라.","이것이 순리다.","계획대로다.","한 걸음 가까워졌다.",
-        "너의 패배가 한 칸 다가왔다."],
-  bad :["…실수마저 계산에 넣었다.","잠깐. 다시 보겠다.",
-        "이것은 후퇴가 아니라 우회다.","누구에게도 말하지 마라."],
-  ahead:["느리구나, 인간.","그 속도로 나를 막을 셈인가.",
-         "이미 늦었다.","손가락이 열 개인데 그것뿐인가."],
-  behind:["잠깐. 이건 예정에 없다.","제법이군. 인간치고는.",
-          "아직 끝나지 않았다.","운이 좋았을 뿐이다."],
-  close:["끝이 보인다.","한 수만 더.","이 판은 나의 것이다."],
-  win :["끝났다. 인간은 나의 것이다.","설마 했지? 그 설마다.",
-        "이 별의 주인이 바뀌었다."],
-  lose:["오늘은 물러난다. 다음은 없다.","방심했을 뿐이다.",
-        "재대결을 요구한다."],
-};
 let lastLine = "";
 function says(kind, vars){
-  const pool = LINES[kind] || LINES.look;
+  const pool = T("lines." + kind) || T("lines.look");
   let s = pick(pool);
   for(let i=0;i<4 && s===lastLine;i++) s = pick(pool);
   lastLine = s;
@@ -837,24 +831,8 @@ function tallyShow(h, f){
  * every one of them inhibitory, one candidate board per 18 ms, and a brain that
  * only ever reports how close two pictures look.
  */
-const TUG_SAYS = [
-  [75, ["인류가 버티고 있다.", "대왕이 쫓겨나는 중.", "아직은 인간의 별이다.",
-        "초파리, 본진까지 밀렸다.", "이 정도면 놀아준 것이다."]],
-  [62, ["인간이 앞선다.", "전선은 아직 인간 쪽이다.", "밀어붙이는 중.",
-        "대왕의 계획에 차질이 생겼다."]],
-  [55, ["간신히 앞선다.", "한 발만 물러서면 뒤집힌다.",
-        "이기고는 있는데 마음이 편하지 않다.", "아슬아슬하다."]],
-  [46, ["팽팽하다.", "줄이 움직이지 않는다.", "반반. 이게 더 무섭다.",
-        "인류와 초파리가 같은 힘으로 당기는 중."]],
-  [38, ["밀리고 있다.", "줄이 저쪽으로 넘어갔다.", "전선이 무너지는 중.",
-        "위태롭다."]],
-  [25, ["인간은 초파리에게 패배하고 마는 건가...", "체면이 걸렸다.",
-        "누가 좀 막아봐라.", "대왕이 줄을 끌고 간다."]],
-  [0,  ["인류가 무너지는 중.", "초파리의 시대가 왔다.", "누가 좀 이겨주세요.",
-        "인류 대표 구함.", "이 별의 주인이 바뀌었다."]],
-];
 function tugSay(me){
-  for(const band of TUG_SAYS)
+  for(const band of (T("tug") || []))
     if(me >= band[0]) return pick(band[1]);
   return "";
 }
@@ -878,12 +856,12 @@ function idle(){
   for(const v of ["youVeil","flyVeil"]){ $(v).className="veil"; $(v).textContent=""; }
   S.winner = "idle"; S.locked = true; S.pick = -1;
   $("clock").textContent = "0.0";
-  $("hint").textContent = "난도와 속도를 고르고 시작";
+  $("hint").textContent = T("ui.hintIdle");
   $("seen").textContent = "\u2014";
   $("scanBar").style.width = "0%";
   says("look", {seen:1, of:S.n || 66, ms:String(Math.round(S.lookMs || 18))});
   $("go").disabled = false;
-  $("go").textContent = "시작";
+  $("go").textContent = T("ui.start");
 }
 
 function start(){
@@ -919,8 +897,9 @@ function start(){
 
   const cands=P.n*(P.n-1)/2;
   $("tot").textContent=P.n; $("tot2").textContent=P.n;
-  $("lvl").textContent=P.n+"조각 · 최단 "+Puzzle.owed(board)+"수";
-  $("flyTip").textContent="한 수에 "+cands+"장 × "+lookMs.toFixed(lookMs<10?1:0)+"ms";
+  $("lvl").textContent = fmt(T("ui.level"), {n:P.n, best:Puzzle.owed(board)});
+  $("flyTip").textContent = fmt(T("ui.flyTip"),
+    {c:cands, ms:lookMs.toFixed(lookMs<10?1:0)});
   hud();
   lastLine=""; says("look",{seen:1,of:cands,ms:lookMs.toFixed(0)});
   relayout();
@@ -933,13 +912,13 @@ function countdown(left){
     for(const v of ["youVeil","flyVeil"]){
       $(v).innerHTML="<span>"+left+"</span>"; $(v).className="veil count on";
     }
-    $("clock").textContent=left; $("hint").textContent="준비…"; SFX.count(left);
+    $("clock").textContent=left; $("hint").textContent=T("ui.ready"); SFX.count(left);
     S.count=setTimeout(()=>countdown(left-1),900);
     return;
   }
   for(const v of ["youVeil","flyVeil"]){ $(v).className="veil"; $(v).textContent=""; }
   $("clock").textContent="0.0";
-  $("hint").textContent="같은 그림, 같은 섞인 상태. 먼저 맞추면 이긴다.";
+  $("hint").textContent=T("ui.hintPlay");
   SFX.count(0);
   S.locked=false; S.started=Date.now();
   S.clock=setInterval(()=>{ if(!S.winner)
@@ -952,7 +931,7 @@ function flyTurn(){
   thinking(true);
   S.turn=new Puzzle.Turn(fly, S.pieces, S.fly, S.target, S.lookMs,
     (k,of)=>{
-      $("seen").textContent=k+" / "+of+"장 보는 중";
+      $("seen").textContent = fmt(T("ui.scanning"), {k:k, of:of});
       $("scanBar").style.width=(100*k/of)+"%";
       if(k % Math.max(4, Math.round(70/S.lookMs)) === 0) SFX.tick();
       if(Date.now()-S.said>2200){ S.said=Date.now();
@@ -991,10 +970,10 @@ function finish(who){
   says(won?"lose":"win");
   if(won){ SFX.win(); confetti(["#4ade80","#5aa2ff","#fbbf24","#ffffff","#c9a6ff"]); }
   else SFX.lose();
-  $("overBig").textContent = won ? "이겼다" : "졌다";
+  $("overBig").textContent = T(won ? "over.win" : "over.lose");
   $("overBig").style.color = won ? "var(--ok)" : "var(--fly)";
-  $("overWhy").textContent = "\u201C" + pick(won ? LORD_LOSE : LORD_WIN)
-    .split("{n}").join(home(S.human)).split("{t}").join(S.n) + "\u201D";
+  $("overWhy").textContent = "\u201C" +
+    fmt(pick(T(won ? "lord.lose" : "lord.win")), {n: home(S.human), t: S.n}) + "\u201D";
 
   tallyShow(null, null);
   Promise.all([tallyHit(won ? "human" : "fly"), tallyRead(won ? "fly" : "human")])
@@ -1139,19 +1118,14 @@ function showSpeed(){
   const x=SPEEDS[+$("speed").value];
   const wide = !window.matchMedia("(orientation:portrait),(max-width:840px)").matches;
   $("speedv").textContent = wide
-    ? "×"+x+(x===1?" 실제":"")+" · "+(BASE_MS/x).toFixed(x<1?0:1)+"ms"
+    ? "×"+x+(x===1?" "+T("ui.speedReal"):"")+" · "+(BASE_MS/x).toFixed(x<1?0:1)+"ms"
     : "×"+x;
 }
 // 세로 화면에서는 난도 문구를 조각 수만 남긴다. 긴 문구가 한 줄의 절반을
 // 차지하면 가속 값 같은 게 밀려나 사라진다.
-const SIZE_LONG = ["쉬움 · 6조각","보통 · 12조각","어려움 · 16조각",
-                   "아주 어려움 · 20조각","지옥 · 30조각"];
-const SIZE_SHORT = ["6조각","12조각","16조각","20조각","30조각"];
 function labelSizes(){
-  const short = portrait();
-  [...$("size").options].forEach((o,i)=>{
-    o.textContent = (short ? SIZE_SHORT : SIZE_LONG)[i] || o.textContent;
-  });
+  const rows = T(portrait() ? "sizesShort" : "sizes") || [];
+  [...$("size").options].forEach((o,i)=>{ if(rows[i]) o.textContent = rows[i]; });
 }
 $("speed").oninput=showSpeed;
 // 시작은 설명을 먼저 띄운다. 규칙을 모르고 카운트다운부터 마주하면
@@ -1161,15 +1135,16 @@ function howto(){
   if(skipHowto()){ start(); return; }
   const [rows,cols] = (portrait()?SIZES_PORT:SIZES_LAND)[+$("size").value];
   const n = rows*cols, c = n*(n-1)/2, ms = BASE_MS / SPEEDS[+$("speed").value];
-  $("howPace").textContent =
-    "지금은 " + n + "조각이라 한 수에 " + c + "장, 장당 " +
-    ms.toFixed(ms<10?1:0) + "ms 로 " + (c*ms/1000).toFixed(1) + "초 걸린다.";
+  const pace = fmt(T("howto.pace"),
+    {n:n, c:c, ms:ms.toFixed(ms<10?1:0), sec:(c*ms/1000).toFixed(1)});
+  for(const li of document.querySelectorAll('[data-i18n-list="howto.rules2"] li'))
+    li.innerHTML = li.innerHTML.split("{pace}").join(pace);
   $("howSkip").checked = false;
   howPage(1);
   Promise.all([tallyRead("human"), tallyRead("fly")]).then(([h,f])=>{
     if(h === null && f === null) return;
-    $("howTally").textContent = "모든 플레이어 합계 — 사람 " +
-      (h|0).toLocaleString() + " : 초파리 " + (f|0).toLocaleString();
+    $("howTally").textContent = fmt(T("howto.tally"),
+      {h:(h|0).toLocaleString(), f:(f|0).toLocaleString()});
   });
   $("howto").classList.add("on");
 }
@@ -1199,7 +1174,8 @@ $("file").onchange=e=>{
     picture=img;
     let o=[...$("pic").options].find(x=>x.value==="mine");
     if(!o){ o=document.createElement("option"); o.value="mine"; $("pic").appendChild(o); }
-    o.textContent="내 그림"; $("pic").value="mine";
+    o.textContent = (T("pictures")||{}).mine || "my image";
+    $("pic").value="mine";
   };
   img.src=URL.createObjectURL(f);
 };
@@ -1220,15 +1196,23 @@ window.addEventListener("orientationchange", ()=>setTimeout(()=>{
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>relayout());
 
 // ------------------------------------------------------------------ 시작
-$("pic").innerHTML=Object.entries(Puzzle.PICTURES)
-  .map(([k,v],i)=>'<option value="'+k+'"'+(i?"":" selected")+'>'+v.name+'</option>').join("");
-showSpeed();
-labelSizes();
+$("pic").innerHTML = Object.keys(Puzzle.PICTURES)
+  .map((k,i)=>'<option value="'+k+'"'+(i?"":" selected")+'></option>').join("");
+$("lang").innerHTML = Object.keys(LANG)
+  .map(k=>'<option value="'+k+'">'+LANG[k].name+"</option>").join("");
+$("lang").onchange = ()=>setLang($("lang").value);
+// 저장된 선택이 있으면 그것, 없으면 브라우저 언어, 그래도 없으면 한국어.
+let want = "";
+try{ want = localStorage.getItem("btf:lang") || ""; }catch(e){}
+if(!LANG[want]) want = (navigator.language || "").slice(0,2);
+if(!LANG[want]) want = "ko";
+$("lang").value = want;
+setLang(want);
 fetch("brain.bin").then(r=>r.arrayBuffer()).then(buf=>{
   const g=FlyBrain.parse(buf);
   fly=new FlyBrain.Fly(g);
-  $("brain").textContent="뉴런 "+g.N.toLocaleString()+" · 간선 "+g.E.toLocaleString()+
-    " · 학습되는 값 0개 · 브라우저에서 그대로 돈다 ("+Math.round(buf.byteLength/1024)+" KB)";
+  S.neurons = g.N; S.edges = g.E; S.brainKB = Math.round(buf.byteLength/1024);
+  brainLine();
   S.neurons=g.N; S.edges=g.E;
   $("go").disabled=false;
   observe("you", ".a-you .wrap");
@@ -1236,7 +1220,7 @@ fetch("brain.bin").then(r=>r.arrayBuffer()).then(buf=>{
   observe("target", ".a-mid .tgtwrap");
   drawMap("pr", fly.map("pr", PRW*PRH), PRW, PRH);
   drawMap("l1", fly.map("l1", MAPW*MAPH), MAPW, MAPH);
-}).catch(e=>{ $("brain").textContent="초파리를 불러오지 못했다: "+e.message; });
+}).catch(e=>{ $("brain").textContent = "\u2014 " + e.message; });
 </script>
 </body>
 </html>
