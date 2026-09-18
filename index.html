@@ -421,6 +421,7 @@ function tone(freq, dur, type, vol, when){
 const SFX = {
   tick : ()=>tone(1500, .028, "square", .012),
   pick : ()=>tone(620, .07, "triangle", .10),
+  drop : ()=>tone(300, .06, "triangle", .08),
   swap : ()=>{ tone(400, .09, "triangle", .11); tone(560, .09, "triangle", .09, .05); },
   land : ()=>{ tone(880, .12, "sine", .14); tone(1320, .14, "sine", .10, .06); },
   count: n=>tone(n > 0 ? 520 : 900, n > 0 ? .12 : .3, "sine", .14),
@@ -520,7 +521,7 @@ function paint(id, board, opt){
 }
 
 /** Two pieces actually travel past each other, so a move reads as a move. */
-function animateSwap(id, before, after, i, j, colour, done){
+function animateSwap(id, before, after, i, j, colour, done, keepMark){
   const P=S.pieces, cv=$(id);
   if(!P){ done&&done(); return; }
   const tw=cv.width/P.cols, th=cv.height/P.rows;
@@ -534,8 +535,9 @@ function animateSwap(id, before, after, i, j, colour, done){
       {piece:before[j], x:xj+(xi-xj)*e, y:yj+(yi-yj)*e}]});
     if(u<1) return requestAnimationFrame(step);
     const landed=[i,j].filter(s=>after[s]===s);
-    paint(id, after, {mark:[i,j], colour, pop:landed});
-    if(landed.length) setTimeout(()=>paint(id, after, {mark:[i,j], colour}), 260);
+    const mark = keepMark ? [i,j] : null;
+    paint(id, after, {mark, colour, pop:landed});
+    if(landed.length) setTimeout(()=>paint(id, after, {mark, colour}), 260);
     done&&done();
   })(t0);
 }
@@ -746,7 +748,7 @@ function flyTurn(){
         S.lastHome=h;
         if(h===S.n) return finish("fly");
         flyTurn();
-      });
+      }, true);
     });
 }
 
@@ -779,7 +781,8 @@ function tap(e){
   if(slot<0||slot>=S.n||c<0||c>=P.cols) return;
   if(S.pick<0){ S.pick=slot; SFX.pick();
     paint("you",S.human,{mark:[slot],colour:"#5aa2ff"}); return; }
-  if(S.pick===slot){ S.pick=-1; paint("you",S.human); return; }
+  if(S.pick===slot){                                   // 같은 조각을 다시 -> 취소
+    S.pick=-1; SFX.drop(); paint("you",S.human); return; }
   const a=S.pick; S.pick=-1;
   const before=S.human.slice();
   [S.human[a],S.human[slot]]=[S.human[slot],S.human[a]];
@@ -793,8 +796,20 @@ function tap(e){
     if(h===S.n) finish("human");
   });
 }
-$("you").addEventListener("click", tap);
-$("you").addEventListener("touchend", e=>{ e.preventDefault(); tap(e); }, {passive:false});
+// 터치 기기에서 touchend 와 click 이 둘 다 오면 한 번의 탭이 두 번 처리되어
+// 고르자마자 취소돼 버린다. pointerup 은 마우스든 손가락이든 한 번만 온다.
+if(window.PointerEvent){
+  $("you").addEventListener("pointerup", tap);
+} else {
+  let touched = 0;
+  $("you").addEventListener("touchend", e=>{
+    touched = Date.now(); e.preventDefault(); tap(e);
+  }, {passive:false});
+  $("you").addEventListener("click", e=>{
+    if(Date.now() - touched < 600) return;            // 방금 손가락으로 처리했다
+    tap(e);
+  });
+}
 
 // 원본 확대. 시계는 계속 간다 -- 들여다보는 데 시간이 드는 것도 게임이다.
 $("target").addEventListener("click", ()=>{
