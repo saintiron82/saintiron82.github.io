@@ -153,6 +153,32 @@
               background:#0d121b;border:1px solid var(--line);border-radius:12px;
               padding:9px 11px}
   #over .rank b{color:var(--ok);font-weight:800}
+  /* 줄다리기: 한 줄 위에서 양쪽이 서로 밀고 당긴다. 가운데 눈금이 반반 자리다. */
+  #over .tallyhead{color:var(--faint);font-size:10.5px;letter-spacing:.4px;margin-bottom:6px}
+  #over .tug{margin-bottom:6px}
+  #over .tug .ends{display:flex;justify-content:space-between;align-items:baseline;
+                   font-size:11.5px;color:var(--faint);margin-bottom:5px}
+  #over .tug .ends b{font-size:19px;font-weight:900;
+                     font-family:"Roboto Mono",ui-monospace,monospace}
+  #over .tug .ends .me b{color:var(--you)}
+  #over .tug .ends .bug b{color:var(--fly)}
+  #over .rope .p{position:absolute;top:0;bottom:0;display:flex;align-items:center;
+                 font-size:11px;font-weight:800;color:#fff;
+                 text-shadow:0 1px 2px #0009;pointer-events:none}
+  #over .rope .pMe{left:8px}
+  #over .rope .pBug{right:8px}
+  #over .tugsay{text-align:center;font-size:12.5px;margin-top:7px;
+                color:var(--dim);line-height:1.5;min-height:19px}
+  #over .rope{position:relative;height:22px;border-radius:9px;overflow:hidden;
+              background:linear-gradient(90deg,#6b2a4d,var(--fly));
+              box-shadow:inset 0 1px 3px #0008}
+  #over .rope i{position:absolute;left:0;top:0;bottom:0;width:50%;z-index:0;
+                background:linear-gradient(90deg,var(--you),#2f6fd0);
+                border-right:2px solid #0b0d12;
+                transition:width .7s cubic-bezier(.3,1.2,.4,1)}
+  #over .rope u{position:absolute;left:50%;top:0;bottom:0;width:0;
+                border-left:1px dashed rgba(255,255,255,.35)}
+  #over .tallynote{color:#49505f;font-size:10px;margin-bottom:12px}
   #over .rank .ord{color:var(--gold,#fbbf24);font-weight:800}
 
   #confetti{position:fixed;inset:0;z-index:55;pointer-events:none;display:none;
@@ -171,9 +197,18 @@
                 line-height:1.75}
   #howto .rules li{margin-bottom:7px}
   #howto .rules b{color:var(--ink)}
+  #howto .howTally{color:var(--dim);font-size:12px;margin-bottom:10px;
+                   background:#0d121b;border:1px solid var(--line);
+                   border-radius:10px;padding:8px 10px}
+  #howto .howTally:empty{display:none}
+  #howto .dia{display:block;width:100%;height:auto;margin:0 0 12px;
+              background:#0b0f16;border:1px solid var(--line);border-radius:12px;padding:6px}
+  #howto .nav{display:flex;gap:8px;margin-bottom:10px}
+  #howto .nav button{flex:1}
+  #howto .nav .ghost{flex:0 0 auto}
   #howto .skip{display:flex;align-items:center;gap:7px;color:var(--faint);
                font-size:12px;margin-bottom:14px;cursor:pointer}
-  #howto button{width:100%}
+
   #zoom{position:fixed;inset:0;z-index:50;display:none;align-items:center;
         justify-content:center;background:rgba(5,7,12,.95);padding:16px;cursor:zoom-out}
   #zoom.on{display:flex}
@@ -353,20 +388,64 @@
 </div>
 
 <div id="howto"><div class="box">
-  <div class="big">어떻게 하는 건가</div>
-  <ul class="rules">
-    <li><b>같은 그림, 같은 섞인 상태</b>로 초파리와 동시에 출발한다.
-        먼저 다 맞추는 쪽이 이긴다.</li>
-    <li><b>조각을 끌어다 놓으면</b> 놓은 자리와 바뀐다. 두 개를 차례로 눌러도
-        되고, 같은 조각을 다시 누르면 취소된다.</li>
-    <li><b>원본을 누르면</b> 크게 볼 수 있다. 시계는 그동안에도 간다.</li>
-    <li><b>초파리는 뉴런 7,858개</b>로, 한 수마다 가능한 교환을 한 장씩 전부
-        눈에 비춰본다. <span id="howPace"></span></li>
-    <li>초파리가 하는 일은 "완성본과 얼마나 닮았나"를 재는 것뿐이다.
-        고르고 옮기는 건 바깥 코드가 한다.</li>
-  </ul>
-  <label class="skip"><input type="checkbox" id="howSkip"> 다시 보지 않기</label>
-  <button id="howStart">시작</button>
+  <div class="page" id="howP1">
+    <div class="big">어떻게 하는 건가</div>
+    <svg class="dia" viewBox="0 0 300 118" role="img" aria-label="조각을 끌어다 놓아 자리를 바꾼다">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7"
+                orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#5aa2ff"/></marker>
+      </defs>
+      <rect x="4" y="10" width="132" height="96" rx="7" fill="#0d121b" stroke="#2a3242"/>
+      <text x="70" y="25" font-size="9" fill="#5a6479" text-anchor="middle">내 판</text>
+      <rect x="14" y="32"  width="52" height="30" rx="3" fill="#7c4dd8"/>
+      <rect x="74" y="32"  width="52" height="30" rx="3" fill="#2f7bff"/>
+      <rect x="14" y="68"  width="52" height="30" rx="3" fill="#e0a33a"/>
+      <rect x="74" y="68"  width="52" height="30" rx="3" fill="#3fb47a"/>
+      <rect x="14" y="32"  width="52" height="30" rx="3" fill="none" stroke="#5aa2ff" stroke-width="3"/>
+      <rect x="74" y="68"  width="52" height="30" rx="3" fill="none" stroke="#5aa2ff"
+            stroke-width="3" stroke-dasharray="5 4"/>
+      <path d="M40 62 C40 84 68 88 96 86" fill="none" stroke="#5aa2ff" stroke-width="2.5"
+            marker-end="url(#ah)"/>
+      <text x="196" y="25" font-size="9" fill="#5a6479" text-anchor="middle">바뀐다</text>
+      <rect x="130" y="10" width="0" height="96"/>
+      <rect x="164" y="10" width="132" height="96" rx="7" fill="#0d121b" stroke="#2a3242"/>
+      <rect x="174" y="32" width="52" height="30" rx="3" fill="#3fb47a"/>
+      <rect x="234" y="32" width="52" height="30" rx="3" fill="#2f7bff"/>
+      <rect x="174" y="68" width="52" height="30" rx="3" fill="#e0a33a"/>
+      <rect x="234" y="68" width="52" height="30" rx="3" fill="#7c4dd8"/>
+    </svg>
+    <ul class="rules">
+      <li><b>조각을 끌어다 놓으면</b> 놓은 자리와 바뀐다. 두 개를 차례로 눌러도 되고,
+          같은 조각을 다시 누르면 취소된다.</li>
+      <li><b>같은 그림, 같은 섞인 상태</b>로 초파리와 동시에 출발한다.
+          먼저 다 맞추는 쪽이 이긴다.</li>
+      <li><b>원본을 누르면</b> 크게 볼 수 있다. 시계는 그동안에도 간다.</li>
+    </ul>
+    <div class="howTally" id="howTally"></div>
+    <div class="nav">
+      <button class="ghost" id="howMore">상대가 누구냐 &rsaquo;</button>
+      <button id="howStart">시작</button>
+    </div>
+    <label class="skip"><input type="checkbox" id="howSkip"> 다시 보지 않기</label>
+  </div>
+
+  <div class="page" id="howP2" hidden>
+    <div class="big">상대는 진짜 초파리 뇌다</div>
+    <ul class="rules">
+      <li>MaleCNS v1.0 커넥톰에서 <b>광수용체 4,512개와 L1 1,767개</b>를 그대로 떼어
+          왔다. 간선 7,107개, <b>학습되는 값은 0개</b>다.</li>
+      <li>한 수마다 가능한 교환을 전부 만들어 <b>한 장씩</b> 눈에 비춘다.
+          <span id="howPace"></span></li>
+      <li>속도를 초파리에 맞춘 이유: 실제 초파리는 뇌가 하나라 한 장면씩 보고,
+          광수용체에서 라미나까지 <b>12~22ms</b>가 걸린다. 안 묶으면 1초 안에 끝낸다.</li>
+      <li>초파리가 하는 일은 <b>"완성본과 얼마나 닮았나"</b>를 재는 것뿐이다.
+          후보를 만들고 고르고 옮기는 건 바깥 코드가 한다.</li>
+    </ul>
+    <div class="nav">
+      <button class="ghost" id="howBack">&lsaquo; 돌아가기</button>
+      <button id="howStart2">시작</button>
+    </div>
+  </div>
 </div></div>
 
 <div id="zoom"><canvas id="zoomc"></canvas>
@@ -381,6 +460,18 @@
     <div><div class="k">사람</div><div class="v mono" id="overYou">–</div></div>
     <div><div class="k">초파리</div><div class="v mono" id="overFly">–</div></div>
   </div>
+  <div class="tallyhead">모든 플레이어 합계</div>
+  <div class="tug">
+    <div class="ends">
+      <span class="me"><b id="tallyHuman">–</b> 사람</span>
+      <span class="bug">초파리 🪰 <b id="tallyFly">–</b></span>
+    </div>
+    <div class="rope"><i id="tugMe"></i><u></u>
+      <span class="p pMe mono" id="tugPctMe"></span>
+      <span class="p pBug mono" id="tugPctFly"></span></div>
+    <div class="tugsay" id="tugSay"></div>
+  </div>
+  <div class="tallynote" id="overTallyNote">누구나 올릴 수 있는 공개 카운터다</div>
   <div class="spec mono" id="overSpec"></div>
   <div class="rank" id="overRank"></div>
   <button id="again">다시 한 판</button>
@@ -702,6 +793,101 @@ function recSave(list){
   try{ localStorage.setItem(recKey(), JSON.stringify(list.slice(0, 60))); }catch(e){}
 }
 
+/**
+ * Everybody's games, added up, on a free public counter.
+ *
+ * Worth being plain about what this is. Nothing can authenticate a static page,
+ * so the endpoint that adds one is open to anyone with curl -- the number counts
+ * what was reported, not what was played, and the card says so underneath. It
+ * also lives on someone else's free service: two of the three like it that I
+ * tried were already dead, so every call is allowed to fail and the page shows
+ * nothing rather than a wrong number.
+ */
+const TALLY = "https://abacus.jasoncameron.dev";
+const TALLY_NS = "beat-the-fly";
+function tallyRead(key){
+  return fetch(TALLY + "/get/" + TALLY_NS + "/" + key, {cache:"no-store"})
+    .then(r => r.ok ? r.json() : {value:0})
+    .then(j => j.value | 0)
+    .catch(() => null);
+}
+function tallyHit(key){
+  return fetch(TALLY + "/hit/" + TALLY_NS + "/" + key, {cache:"no-store"})
+    .then(r => r.ok ? r.json() : null)
+    .then(j => j ? (j.value | 0) : null)
+    .catch(() => null);
+}
+function tallyShow(h, f){
+  const known = (h !== null && h !== undefined) || (f !== null && f !== undefined);
+  const H = h | 0, F = f | 0, T = H + F;
+  $("tallyHuman").textContent = known ? H.toLocaleString() : "–";
+  $("tallyFly").textContent   = known ? F.toLocaleString() : "–";
+  const pct = T ? (100 * H / T) : 50;
+  const me = Math.round(pct), bug = 100 - me;
+  $("tugMe").style.width = pct.toFixed(1) + "%";
+  $("tugPctMe").textContent  = (known && T) ? me + "%" : "";
+  $("tugPctFly").textContent = (known && T) ? bug + "%" : "";
+  $("tugSay").innerHTML = (known && T) ? tugSay(me) : "";
+  $("overTallyNote").textContent = known
+    ? "누구나 올릴 수 있는 공개 카운터다"
+    : "합계를 불러오지 못했다";
+}
+
+/** A line for wherever the rope has ended up. */
+/**
+ * A line for wherever the rope has ended up.
+ *
+ * The jokes stay on the facts this rests on -- 7,858 neurons, 7,107 edges and
+ * every one of them inhibitory, one candidate board per 18 ms, and a brain that
+ * only ever reports how close two pictures look.
+ */
+const TUG_SAYS = [
+  [75, ["초파리는 아직 눈이 하나뿐이다.",
+        "인류가 이기고 있다. 뉴런 860억 대 <b>7,858</b>이니 이겨야 정상이긴 하다.",
+        "손가락 다섯 개의 승리.",
+        "초파리가 한 장 볼 동안 인간은 판 전체를 본다. 그 차이다.",
+        "이쯤이면 초파리 가속을 올려줄 때가 됐다.",
+        "압승. 자랑하기엔 상대가 좀 작다."]],
+  [62, ["인간이 앞선다. 손가락은 괜히 달린 게 아니다.",
+        "아직은 인간의 시대다.",
+        "초파리가 한 장씩 보는 사이에 인간은 이미 집어 옮긴다.",
+        "뇌 무게로는 이겨야 한다. 실제로 이기고 있다.",
+        "우세. 다만 상대는 18밀리초에 한 장씩만 본다."]],
+  [55, ["인간이 조금 앞선다.",
+        "간신히 앞선다. 상대는 뉴런 7,858개다.",
+        "우위가 얇다. 가속을 한 칸 올리면 뒤집힌다.",
+        "이기고는 있는데 마음이 편하지는 않다.",
+        "근소한 우세. 자축은 이르다."]],
+  [46, ["팽팽하다. 뉴런 <b>7,858개</b>와 호각이다.",
+        "반반. 이게 더 무서운 결과다.",
+        "줄이 안 움직인다. 인류와 초파리가 같은 힘으로 당기는 중.",
+        "동률. 상대 간선은 7,107개고 그마저 전부 억제성이다.",
+        "무승부 언저리. 어느 쪽도 자랑할 게 없다."]],
+  [38, ["밀리고 있다.",
+        "조금씩 끌려간다.",
+        "초파리가 앞서기 시작했다. 아직 만회할 수 있다.",
+        "열세. 난도를 낮추는 것도 방법이다.",
+        "줄이 저쪽으로 넘어갔다."]],
+  [25, ["인간은 초파리에게 패배하고 마는 건가...",
+        "뉴런 7,858개한테 밀리는 중입니다, 여러분.",
+        "이건 좀 심각하다.",
+        "상대는 겹눈에 뇌가 좁쌀만 하다. 그런데 이기고 있다.",
+        "인류의 체면이 걸린 국면.",
+        "초파리가 줄을 끌고 간다. 말릴 사람?"]],
+  [0,  ["뉴런 7,858개 앞에 인류가 무너지는 중.",
+        "완패. 상대 간선은 7,107개, 전부 억제성이다.",
+        "초파리 압승. 이 줄은 이미 저쪽 땅에 가 있다.",
+        "누가 좀 이겨주세요.",
+        "인류 대표가 필요합니다.",
+        "이쯤 되면 초파리 가속을 ×0.1로 내려도 할 말이 없다."]],
+];
+function tugSay(me){
+  for(const band of TUG_SAYS)
+    if(me >= band[0]) return band[1][(Math.random() * band[1].length) | 0];
+  return "";
+}
+
+
 const home = b => b.reduce((n,p,s)=>n+(p===s?1:0),0);
 function hud(){
   const h=home(S.human), f=home(S.fly);
@@ -841,6 +1027,10 @@ function finish(who){
   $("overTime").textContent=secs+"초";
   $("overYou").textContent=S.moves.human+"수";
   $("overFly").textContent=S.moves.fly+"수";
+
+  tallyShow(null, null);
+  Promise.all([tallyHit(won ? "human" : "fly"), tallyRead(won ? "fly" : "human")])
+    .then(([mine, other]) => tallyShow(won ? mine : other, won ? other : mine));
 
   const cands = S.n*(S.n-1)/2;
   $("overSpec").innerHTML =
@@ -1032,16 +1222,30 @@ function howto(){
     "지금은 " + n + "조각이라 한 수에 " + c + "장, 장당 " +
     ms.toFixed(ms<10?1:0) + "ms 로 " + (c*ms/1000).toFixed(1) + "초 걸린다.";
   $("howSkip").checked = false;
+  howPage(1);
+  Promise.all([tallyRead("human"), tallyRead("fly")]).then(([h,f])=>{
+    if(h === null && f === null) return;
+    $("howTally").textContent = "모든 플레이어 합계 — 사람 " +
+      (h|0).toLocaleString() + " : 초파리 " + (f|0).toLocaleString();
+  });
   $("howto").classList.add("on");
 }
 function skipHowto(){
   try{ return localStorage.getItem("btf:skipHowto") === "1"; }catch(e){ return false; }
 }
-$("howStart").onclick = ()=>{
+function howBegin(){
   try{ if($("howSkip").checked) localStorage.setItem("btf:skipHowto","1"); }catch(e){}
   $("howto").classList.remove("on");
   start();
-};
+}
+function howPage(n){
+  $("howP1").hidden = (n !== 1);
+  $("howP2").hidden = (n !== 2);
+}
+$("howStart").onclick  = howBegin;
+$("howStart2").onclick = howBegin;
+$("howMore").onclick   = ()=>howPage(2);
+$("howBack").onclick   = ()=>howPage(1);
 $("go").onclick=howto;
 $("again").onclick=idle;
 $("pickImg").onclick=()=>$("file").click();
